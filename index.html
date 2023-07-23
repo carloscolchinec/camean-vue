@@ -27,7 +27,7 @@
       width: 100%;
       max-width: 360px;
       background-color: #F3F4F6;
-      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0px 4px 12px rgba(64, 64, 64, 0.4);
       border-radius: 12px;
       padding: 24px;
     }
@@ -104,6 +104,24 @@
       border: 2px solid #10B981;
       pointer-events: none;
     }
+
+    /* Estilos para el rectángulo y el código detectado */
+    .detected-barcode {
+      position: absolute;
+      border: 2px solid #10B981;
+      border-radius: 8px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+      background-color: #fff;
+      color: #10B981;
+      padding: 4px 8px;
+      top: 8px;
+      right: 8px;
+    }
   </style>
 </head>
 
@@ -112,17 +130,18 @@
   <main class="container">
     <div class="card">
       <h1 class="title">COLNETCAM | CODEBAR</h1>
-      <button id="startButton" class="button button-blue">Start</button>
-      <button id="resetButton" class="button button-red">Reset</button>
-
       <div class="video-container">
-        <video id="video" class="video"></video>
-        <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
-        <div id="barcode-box" class="barcode-box"></div>
-      </div>
-
+          <video id="video" class="video"></video>
+          <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
+          <div id="barcode-box" class="barcode-box"></div>
+          <!-- Elemento para mostrar el código detectado -->
+          <div class="detected-barcode" id="detectedBarcode"></div>
+        </div>
+        
+        <button id="startButton" class="button button-blue">Start</button>
+      <button id="resetButton" class="button button-red">Reset</button>
       <div id="sourceSelectPanel" class="mt-4 hidden">
-        <label for="sourceSelect" class="font-semibold text-gray-800">Change video source:</label>
+        <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
         <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
         </select>
       </div>
@@ -131,7 +150,6 @@
     </div>
   </main>
 
-  <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function () {
@@ -162,19 +180,42 @@
             codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
               if (result) {
                 console.log(result)
-                document.getElementById('result').textContent = result.text
+                document.getElementById('result').textContent = result.text;
+
+                // Mostrar el rectángulo alrededor del código de barras detectado
+                const canvas = document.getElementById('scanner-overlay');
+                const ctx = canvas.getContext('2d');
+                const detectedBarcode = document.getElementById('detectedBarcode');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (result.barcodeResult) {
+                  const { x, y, width, height } = result.barcodeResult.boundingBox;
+                  ctx.strokeStyle = '#10B981';
+                  ctx.lineWidth = 2;
+                  ctx.strokeRect(x, y, width, height);
+
+                  // Mostrar el código detectado en la esquina superior derecha del rectángulo
+                  detectedBarcode.textContent = `[${result.barcodeResult.text}]`;
+                  detectedBarcode.style.top = `${y}px`;
+                  detectedBarcode.style.left = `${x + width}px`;
+                  detectedBarcode.style.display = 'block';
+                }
               }
               if (err && !(err instanceof ZXing.NotFoundException)) {
                 console.error(err)
                 document.getElementById('result').textContent = err
               }
             })
-            console.log(`Started continous decode from camera with id ${selectedDeviceId}`)
+            console.log(`Started continuous decode from camera with id ${selectedDeviceId}`)
           })
 
           document.getElementById('resetButton').addEventListener('click', () => {
             codeReader.reset()
             document.getElementById('result').textContent = '';
+            const canvas = document.getElementById('scanner-overlay');
+            const ctx = canvas.getContext('2d');
+            const detectedBarcode = document.getElementById('detectedBarcode');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            detectedBarcode.style.display = 'none';
             console.log('Reset.')
           })
 
