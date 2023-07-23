@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="ZXing for JS">
 
-  <title>ZXing TypeScript | Decoding from camera stream</title>
+  <title>ZXing Code Scanner</title>
 
   <!-- Stylesheets -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -17,16 +17,11 @@
   <main class="container mx-auto px-4 py-8">
 
     <section class="bg-white shadow-lg rounded-lg p-6">
-      <h1 class="text-2xl font-semibold mb-4">Scan 1D/2D Code from Video Camera</h1>
-
-      <p>This example shows how to scan any supported 1D/2D code with ZXing javascript library from the device video
-        camera. If more
-        than one video input devices are available (for example front and back camera) the example shows how to read
-        them and use a select to change the input device.</p>
+      <h1 class="text-2xl font-semibold mb-4">Scan Code from Camera</h1>
 
       <div class="flex justify-between items-center mt-4">
         <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
-          Start
+          Start Scanning
         </button>
         <button id="resetButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
           Reset
@@ -39,25 +34,15 @@
       </div>
 
       <div id="sourceSelectPanel" class="mt-4 hidden">
-        <label for="sourceSelect" class="font-semibold">Change video source:</label>
+        <label for="sourceSelect" class="font-semibold">Change camera:</label>
         <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
         </select>
       </div>
 
       <div class="mt-4">
-        <label class="font-semibold">Result:</label>
         <pre><code id="result" class="bg-gray-100 p-2 rounded"></code></pre>
       </div>
-
-      <p class="mt-4">See the <a href="https://github.com/zxing-js/library/tree/master/docs/examples/multi-camera/">source
-          code</a>
-        for this example.</p>
     </section>
-
-    <footer class="mt-8 text-center">
-      <p class="text-gray-600">ZXing TypeScript Demo. Licensed under the <a target="_blank"
-          href="https://github.com/zxing-js/library#license" title="MIT">MIT</a>.</p>
-    </footer>
 
   </main>
 
