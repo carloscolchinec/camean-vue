@@ -52,87 +52,86 @@
   <script type="text/javascript">
     window.addEventListener('load', function () {
       let selectedDeviceId;
-      const codeReader = new ZXing.BrowserMultiFormatReader()
-      console.log('ZXing code reader initialized')
+      const codeReader = new ZXing.BrowserMultiFormatReader();
+      console.log('ZXing code reader initialized');
       codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
-          const sourceSelect = document.getElementById('sourceSelect')
-          selectedDeviceId = videoInputDevices[0].deviceId
+          const sourceSelect = document.getElementById('sourceSelect');
+          selectedDeviceId = videoInputDevices[0].deviceId;
           if (videoInputDevices.length >= 1) {
             videoInputDevices.forEach((element) => {
-              const sourceOption = document.createElement('option')
-              sourceOption.text = element.label
-              sourceOption.value = element.deviceId
-              sourceSelect.appendChild(sourceOption)
-            })
+              const sourceOption = document.createElement('option');
+              sourceOption.text = element.label;
+              sourceOption.value = element.deviceId;
+              sourceSelect.appendChild(sourceOption);
+            });
 
             sourceSelect.onchange = () => {
               selectedDeviceId = sourceSelect.value;
             };
 
-            const sourceSelectPanel = document.getElementById('sourceSelectPanel')
-            sourceSelectPanel.style.display = 'block'
+            const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+            sourceSelectPanel.style.display = 'block';
           }
-
-          document.getElementById('startButton').addEventListener('click', () => {
-            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-              if (result) {
-                console.log(result)
-                document.getElementById('result').textContent = result.text
-                drawBoundingBox(result);
-              }
-              if (err && !(err instanceof ZXing.NotFoundException)) {
-                console.error(err)
-                document.getElementById('result').textContent = err
-              } else {
-                clearBoundingBox();
-              }
-            })
-            console.log(`Started continous decode from camera with id ${selectedDeviceId}`)
-          })
-
-          document.getElementById('resetButton').addEventListener('click', () => {
-            codeReader.reset()
-            document.getElementById('result').textContent = '';
-            clearBoundingBox();
-            console.log('Reset.')
-          })
-
         })
         .catch((err) => {
-          console.error(err)
-        })
+          console.error(err);
+        });
 
-    function drawBoundingBox(result) {
-      const boxElement = document.getElementById('barcode-box');
-      const videoElement = document.getElementById('video');
-      const canvasElement = document.getElementById('scanner-overlay');
+      document.getElementById('startButton').addEventListener('click', () => {
+        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+          if (result) {
+            console.log(result);
+            document.getElementById('result').textContent = result.text;
+            drawBoundingBox(result);
+          }
+          if (err && !(err instanceof ZXing.NotFoundException)) {
+            console.error(err);
+            document.getElementById('result').textContent = err;
+          } else {
+            clearBoundingBox();
+          }
+        });
+        console.log(`Started continous decode from camera with id ${selectedDeviceId}`);
+      });
 
-      const canvasContext = canvasElement.getContext('2d');
-      canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasContext.beginPath();
-      canvasContext.moveTo(result.location.topLeft.x * videoElement.width, result.location.topLeft.y * videoElement.height);
-      canvasContext.lineTo(result.location.topRight.x * videoElement.width, result.location.topRight.y * videoElement.height);
-      canvasContext.lineTo(result.location.bottomRight.x * videoElement.width, result.location.bottomRight.y * videoElement.height);
-      canvasContext.lineTo(result.location.bottomLeft.x * videoElement.width, result.location.bottomLeft.y * videoElement.height);
-      canvasContext.lineTo(result.location.topLeft.x * videoElement.width, result.location.topLeft.y * videoElement.height);
-      canvasContext.stroke();
+      document.getElementById('resetButton').addEventListener('click', () => {
+        codeReader.reset();
+        document.getElementById('result').textContent = '';
+        clearBoundingBox();
+        console.log('Reset.');
+      });
 
-      const rectHeight = (result.location.bottomLeft.y - result.location.topLeft.y) * videoElement.height;
-      boxElement.style.width = `${rectHeight * 1.6}px`;
-      boxElement.style.height = `${rectHeight}px`;
-      boxElement.style.top = `${result.location.topLeft.y * videoElement.height}px`;
-      boxElement.style.left = `${(result.location.topLeft.x - 0.3) * videoElement.width}px`;
-    }
+      function drawBoundingBox(result) {
+        const boxElement = document.getElementById('barcode-box');
+        const videoElement = document.getElementById('video');
+        const canvasElement = document.getElementById('scanner-overlay');
 
-    function clearBoundingBox() {
-      const boxElement = document.getElementById('barcode-box');
-      boxElement.style.width = '0';
-      boxElement.style.height = '0';
-      boxElement.style.top = '0';
-      boxElement.style.left = '0';
-    }
+        const canvasContext = canvasElement.getContext('2d');
+        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasContext.beginPath();
+        canvasContext.moveTo(result.location.topLeft.x, result.location.topLeft.y);
+        canvasContext.lineTo(result.location.topRight.x, result.location.topRight.y);
+        canvasContext.lineTo(result.location.bottomRight.x, result.location.bottomRight.y);
+        canvasContext.lineTo(result.location.bottomLeft.x, result.location.bottomLeft.y);
+        canvasContext.lineTo(result.location.topLeft.x, result.location.topLeft.y);
+        canvasContext.strokeStyle = 'green';
+        canvasContext.lineWidth = 2;
+        canvasContext.stroke();
 
+        const videoRect = videoElement.getBoundingClientRect();
+        boxElement.style.width = result.location.topRight.x - result.location.topLeft.x + 'px';
+        boxElement.style.height = result.location.bottomLeft.y - result.location.topLeft.y + 'px';
+        boxElement.style.left = (videoRect.left + result.location.topLeft.x) + 'px';
+        boxElement.style.top = (videoRect.top + result.location.topLeft.y) + 'px';
+      }
+
+      function clearBoundingBox() {
+        const boxElement = document.getElementById('barcode-box');
+        boxElement.style.width = '0';
+        boxElement.style.height = '0';
+      }
+    });
   </script>
 
 </body>
