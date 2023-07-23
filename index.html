@@ -1,156 +1,95 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Lector de Código de Barras</title>
-  <style>
-    #app {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 100vh;
-      background-color: #f5f5f5;
-    }
-    .camera-view {
-      position: relative;
-      width: 320px;
-      height: 240px;
-      border: 1px solid #ccc;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .detected-rectangle {
-      position: absolute;
-      border: 2px solid red;
-      pointer-events: none;
-    }
-    .barcode-number {
-      position: absolute;
-      top: 5px;
-      left: 5px;
-      background-color: red;
-      color: white;
-      padding: 2px 5px;
-      font-size: 14px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Lector de Códigos de Barra</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
-  <div id="app">
-    <div class="camera-view">
-      <video ref="cameraVideo" playsinline="true"></video>
-      <canvas ref="cameraOverlay" width="320" height="240"></canvas>
-    </div>
-    <select v-if="cameras.length > 0" v-model="selectedCamera" @change="restartScanner">
-      <option v-for="(camera, index) in cameras" :key="index" :value="index">
-        {{ camera.label }}
-      </option>
-    </select>
+  <div class="p-4 max-w-md mx-auto mt-8 border rounded-lg shadow-lg">
+    <h2 class="text-xl font-semibold mb-4">Lector de Códigos de Barra</h2>
+    <video id="barcode-scanner" class="w-full h-auto mb-4"></video>
+    <button id="switch-camera" class="bg-blue-500 hover:bg-blue-600 text-white rounded px-4 py-2">Cambiar Cámara</button>
+    <div id="scanned-code" class="text-lg font-semibold mt-4"></div>
   </div>
 
-  <script src="https://unpkg.com/vue@3.2.25/dist/vue.global.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <script>
-    Vue.createApp({
-      data() {
-        return {
-          cameras: [],
-          selectedCamera: null,
-          scannerActive: false,
-        };
-      },
-      async mounted() {
-        await this.initCamera();
-        this.restartScanner();
-      },
-      watch: {
-        selectedCamera() {
-          this.restartScanner();
-        },
-      },
-      methods: {
-        async initCamera() {
-          try {
-            this.scannerActive = false;
-            const codeReader = new ZXing.BrowserBarcodeReader();
-            this.cameras = await this.getAvailableCameras();
+    document.addEventListener('DOMContentLoaded', function() {
+      const video = document.getElementById('barcode-scanner');
+      const switchCameraButton = document.getElementById('switch-camera');
 
-            if (this.cameras.length > 0) {
-              this.selectedCamera = 0;
-            } else {
-              alert("No se encontraron cámaras disponibles.");
-            }
-          } catch (err) {
-            console.error("Error al acceder a la cámara:", err);
-            alert("No se pudo acceder a la cámara o el acceso fue denegado por el usuario.");
-          }
-        },
-        async getAvailableCameras() {
-          try {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            return devices.filter((device) => device.kind === "videoinput");
-          } catch (err) {
-            console.error("Error al obtener las cámaras:", err);
-            return [];
-          }
-        },
-        async startScanner() {
-          const cameraVideo = this.$refs.cameraVideo;
-          const cameraOverlay = this.$refs.cameraOverlay;
-          const barcodeNumber = document.createElement("div");
-          const canvasContext = cameraOverlay.getContext("2d");
-          this.scannerActive = true;
+      let activeCamera = 0;
 
-          cameraVideo.srcObject = null;
-          const selectedDeviceId = this.cameras[this.selectedCamera].deviceId;
-          const constraints = { video: { deviceId: selectedDeviceId } };
+      async function switchCamera() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            cameraVideo.srcObject = null;
-            await cameraVideo.play();
-          } catch (err) {
-            console.error("Error al acceder a la cámara:", err);
-            this.scannerActive = false;
-            alert("No se pudo acceder a la cámara o el acceso fue denegado por el usuario.");
+        if (videoDevices.length > 1) {
+          activeCamera = (activeCamera + 1) % videoDevices.length;
+          startScanner(videoDevices[activeCamera].deviceId);
+        }
+      }
+
+      function startScanner(deviceId) {
+        Quagga.init({
+          inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: video,
+            constraints: {
+              deviceId: deviceId,
+              facingMode: 'environment', // Cámara trasera (o 'user' para cámara frontal)
+            },
+          },
+          decoder: {
+            readers: ['ean_reader'],
+          },
+        }, function(err) {
+          if (err) {
+            console.error('Error al iniciar el escáner:', err);
             return;
           }
 
-          cameraOverlay.appendChild(barcodeNumber);
-          barcodeNumber.classList.add("barcode-number");
+          Quagga.start();
+        });
 
-          async function scanBarcode() {
-            if (!this.scannerActive) return;
+        Quagga.onDetected(function(result) {
+          const code = result.codeResult.code;
+          drawBoundingBox(result);
+          displayScannedCode(code);
+        });
+      }
 
-            try {
-              const result = await codeReader.decodeFromVideoElement(
-                cameraVideo,
-                cameraVideo.width,
-                cameraVideo.height
-              );
+      function drawBoundingBox(result) {
+        const drawingCtx = Quagga.canvas.ctx.overlay;
+        const drawingCanvas = Quagga.canvas.dom.overlay;
 
-              if (result && result.text) {
-                drawDetectedBarcode(result.text);
-              }
+        if (result) {
+          const { codeResult, line } = result;
+          const lineWidth = 10;
 
-              // Continuar escaneando
-              scanBarcode.call(this);
-            } catch (err) {
-              console.error("Error al escanear:", err);
-            }
-          }
+          drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute('width')), parseInt(drawingCanvas.getAttribute('height')));
+          drawingCtx.strokeStyle = '#00FF00';
+          drawingCtx.lineWidth = lineWidth;
+          drawingCtx.beginPath();
+          drawingCtx.moveTo(line[0].x, line[0].y);
+          drawingCtx.lineTo(line[1].x, line[1].y);
+          drawingCtx.lineTo(line[2].x, line[2].y);
+          drawingCtx.lineTo(line[3].x, line[3].y);
+          drawingCtx.lineTo(line[0].x, line[0].y);
+          drawingCtx.stroke();
+        }
+      }
 
-          // Iniciar el escaneo automáticamente
-          scanBarcode.call(this);
-        },
-        stopScanner() {
-          this.scannerActive = false;
-        },
-        restartScanner() {
-          this.stopScanner();
-          this.startScanner();
-        },
-      },
-    }).mount("#app");
+      function displayScannedCode(code) {
+        const codeDisplay = document.getElementById('scanned-code');
+        codeDisplay.textContent = code;
+      }
+
+      switchCameraButton.addEventListener('click', switchCamera);
+      startScanner(null);
+    });
   </script>
 </body>
 </html>
