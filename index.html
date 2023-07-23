@@ -73,6 +73,8 @@
         if (videoDevices.length > 1) {
           activeCamera = (activeCamera + 1) % videoDevices.length;
           startScanner(videoDevices[activeCamera].deviceId);
+        } else {
+          console.error('No se encontraron cámaras disponibles.');
         }
       }
 
