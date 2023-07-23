@@ -106,7 +106,7 @@
 
           try {
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            cameraVideo.srcObject = stream;
+            cameraVideo.srcObject = null;
             await cameraVideo.play();
           } catch (err) {
             console.error("Error al acceder a la cámara:", err);
