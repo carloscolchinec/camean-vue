@@ -30,6 +30,7 @@
       box-shadow: 0px 4px 12px rgba(64, 64, 64, 0.4);
       border-radius: 12px;
       padding: 24px;
+      position: relative;
     }
 
     .title {
@@ -38,36 +39,6 @@
       color: #333;
       text-align: center;
       margin-bottom: 20px;
-    }
-
-    .button {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 500;
-      text-align: center;
-      cursor: pointer;
-      margin: 8px 0;
-    }
-
-    .button-blue {
-      background-color: #3B82F6;
-      color: #fff;
-    }
-
-    .button-blue:hover {
-      background-color: #2563EB;
-    }
-
-    .button-red {
-      background-color: #EF4444;
-      color: #fff;
-    }
-
-    .button-red:hover {
-      background-color: #DC2626;
     }
 
     .result {
@@ -80,14 +51,22 @@
       position: relative;
       width: 100%;
       max-width: 300px;
-      height: 200px;
+      height: 5px;
       margin: 0 auto;
     }
 
     .video {
       width: 100%;
-      height: 100%;
-      border: 1px solid #D1D5DB;
+      height: auto;
+      border: 1px solid #fe8e14;
+      border-radius: 8px;
+    }
+
+
+    .video {
+      width: 100%;
+      height: auto;
+      border: 1px solid #fe8e14;
       border-radius: 8px;
     }
 
@@ -97,18 +76,20 @@
       left: 0;
       width: 100%;
       height: 100%;
+      pointer-events: none;
     }
 
     .barcode-box {
       position: absolute;
-      border: 2px solid #10B981;
+      border: 2px solid #fe8e14;
       pointer-events: none;
+      z-index: 2;
     }
 
     /* Estilos para el rectángulo y el código detectado */
     .detected-barcode {
       position: absolute;
-      border: 2px solid #10B981;
+      border: 2px solid #fe8e14;
       border-radius: 8px;
       pointer-events: none;
       display: flex;
@@ -117,115 +98,185 @@
       font-size: 14px;
       font-weight: 500;
       background-color: #fff;
-      color: #10B981;
+      color: #fe8e14;
       padding: 4px 8px;
       top: 8px;
       right: 8px;
+      z-index: 2;
+    }
+
+    /* Estilos para la línea animada */
+    .animated-line {
+      position: absolute;
+      top: 0; /* La línea inicia en la parte superior del contenedor */
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #fe8e14;
+      z-index: 1;
+      animation: lineAnimation 1s infinite;
+    }
+
+    @keyframes lineAnimation {
+      0% {
+        transform: translateY(0); /* La línea inicia en su posición original (parte superior del contenedor) */
+      }
+      50% {
+        transform: translateY(100%); /* La línea se mueve hacia abajo hasta abarcar todo el contenedor */
+      }
+      100% {
+        transform: translateY(0); /* La línea vuelve a su posición original (parte superior del contenedor) */
+      }
     }
   </style>
 </head>
 
 <body class="bg-blue-50">
-
-  <main class="container">
-    <div class="card">
-      <h1 class="title">COLNETCAM | CODEBAR</h1>
-      <div class="video-container">
-          <video id="video" class="video"></video>
-          <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
-          <div id="barcode-box" class="barcode-box"></div>
-          <!-- Elemento para mostrar el código detectado -->
-          <div class="detected-barcode" id="detectedBarcode"></div>
+    <main class="container">
+        <div class="card">
+          <h1 class="title">COLNETCAM | CODEBAR</h1>
+          <div class="video-container">
+            <video id="video" class="video"></video>
+            <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
+            <div class="animated-line"></div> <!-- Agregamos la línea animada -->
+            <!-- Elemento para mostrar el código detectado -->
+            <div class="detected-barcode" id="detectedBarcode"></div>
+          </div>
+    
+          <div id="sourceSelectPanel" class="mt-4">
+            <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
+            <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
+            </select>
+          </div>
+    
+          <div class="result" id="result"></div>
         </div>
-        
-        <button id="startButton" class="button button-blue">Start</button>
-      <button id="resetButton" class="button button-red">Reset</button>
-      <div id="sourceSelectPanel" class="mt-4 hidden">
-        <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
-        <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
-        </select>
-      </div>
+      </main>
 
-      <div class="result" id="result"></div>
-    </div>
-  </main>
+
+    
 
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function () {
       let selectedDeviceId;
-      const codeReader = new ZXing.BrowserMultiFormatReader()
-      console.log('ZXing code reader initialized')
+      const codeReader = new ZXing.BrowserMultiFormatReader();
+      console.log('ZXing code reader initialized');
+      const canvas = document.getElementById('scanner-overlay');
+      const ctx = canvas.getContext('2d');
+      const detectedBarcode = document.getElementById('detectedBarcode');
+      const video = document.getElementById('video');
+      const animatedLine = document.querySelector('.animated-line');
+
+      function resetCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        detectedBarcode.style.display = 'none';
+      }
+
+      function adjustLinePosition() {
+      const videoHeight = video.clientHeight;
+      animatedLine.style.top = `${videoHeight / 2}px`;
+      sourceSelectPanel.style.marginTop = `${videoHeight + 20}px`;
+    }
+
+
       codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
-          const sourceSelect = document.getElementById('sourceSelect')
-          selectedDeviceId = videoInputDevices[0].deviceId
+          const sourceSelect = document.getElementById('sourceSelect');
+          selectedDeviceId = videoInputDevices[0].deviceId;
           if (videoInputDevices.length >= 1) {
             videoInputDevices.forEach((element) => {
-              const sourceOption = document.createElement('option')
-              sourceOption.text = element.label
-              sourceOption.value = element.deviceId
-              sourceSelect.appendChild(sourceOption)
-            })
+              const sourceOption = document.createElement('option');
+              sourceOption.text = element.label;
+              sourceOption.value = element.deviceId;
+              sourceSelect.appendChild(sourceOption);
+            });
 
             sourceSelect.onchange = () => {
+              codeReader.reset();
               selectedDeviceId = sourceSelect.value;
+              document.getElementById('result').textContent = '';
+              resetCanvas();
+              console.log(`Restarted with camera id ${selectedDeviceId}`);
+              codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+                if (!(err instanceof ZXing.NotFoundException)) {
+                  console.error(err);
+                  document.getElementById('result').textContent = err;
+                }
+              });
             };
 
-            const sourceSelectPanel = document.getElementById('sourceSelectPanel')
-            sourceSelectPanel.style.display = 'block'
+            const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+            sourceSelectPanel.style.display = 'block';
           }
 
-          document.getElementById('startButton').addEventListener('click', () => {
-            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-              if (result) {
-                console.log(result)
-                document.getElementById('result').textContent = result.text;
+          function onScanResult(result, err) {
+            if (result) {
+              console.log(result);
+              document.getElementById('result').textContent = result.text;
 
-                // Mostrar el rectángulo alrededor del código de barras detectado
-                const canvas = document.getElementById('scanner-overlay');
-                const ctx = canvas.getContext('2d');
-                const detectedBarcode = document.getElementById('detectedBarcode');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (result.barcodeResult) {
-                  const { x, y, width, height } = result.barcodeResult.boundingBox;
-                  ctx.strokeStyle = '#10B981';
-                  ctx.lineWidth = 2;
-                  ctx.strokeRect(x, y, width, height);
+              resetCanvas();
 
-                  // Mostrar el código detectado en la esquina superior derecha del rectángulo
-                  detectedBarcode.textContent = `[${result.barcodeResult.text}]`;
-                  detectedBarcode.style.top = `${y}px`;
-                  detectedBarcode.style.left = `${x + width}px`;
-                  detectedBarcode.style.display = 'block';
-                }
+              // Mostrar el rectángulo alrededor del código de barras detectado
+              if (result.barcodeResult) {
+                const { x, y, width, height } = getBoundingBox(result.barcodeResult.resultPoints);
+                ctx.strokeStyle = '#10B981';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, width, height);
+
+                // Mostrar el código detectado en la esquina superior derecha del rectángulo
+                detectedBarcode.textContent = `[${result.text}]`;
+                detectedBarcode.style.top = `${y}px`;
+                detectedBarcode.style.left = `${x + width}px`;
+                detectedBarcode.style.display = 'block';
               }
-              if (err && !(err instanceof ZXing.NotFoundException)) {
-                console.error(err)
-                document.getElementById('result').textContent = err
-              }
-            })
-            console.log(`Started continuous decode from camera with id ${selectedDeviceId}`)
-          })
+            }
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+              console.error(err);
+              document.getElementById('result').textContent = err;
+            }
+          }
 
-          document.getElementById('resetButton').addEventListener('click', () => {
-            codeReader.reset()
-            document.getElementById('result').textContent = '';
-            const canvas = document.getElementById('scanner-overlay');
-            const ctx = canvas.getContext('2d');
-            const detectedBarcode = document.getElementById('detectedBarcode');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            detectedBarcode.style.display = 'none';
-            console.log('Reset.')
-          })
+          video.onloadedmetadata = adjustLinePosition;
+          window.addEventListener('resize', adjustLinePosition);
 
+          codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+            if (!(err instanceof ZXing.NotFoundException)) {
+              console.error(err);
+              document.getElementById('result').textContent = err;
+            }
+          });
+          console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
         })
         .catch((err) => {
-          console.error(err)
-        })
-    })
-  </script>
+          console.error(err);
+        });
+    });
 
+    // Función para obtener el rectángulo del código de barras a partir de los puntos de resultado
+    function getBoundingBox(resultPoints) {
+      let minX = Number.MAX_VALUE;
+      let minY = Number.MAX_VALUE;
+      let maxX = Number.MIN_VALUE;
+      let maxY = Number.MIN_VALUE;
+
+      resultPoints.forEach(point => {
+        minX = Math.min(minX, point.x);
+        minY = Math.min(minY, point.y);
+        maxX = Math.max(maxX, point.x);
+        maxY = Math.max(maxY, point.y);
+      });
+
+      const x = Math.floor(minX);
+      const y = Math.floor(minY);
+      const width = Math.ceil(maxX - minX);
+      const height = Math.ceil(maxY - minY);
+
+      return { x, y, width, height };
+    }
+
+
+  </script>
 </body>
 
 </html>
