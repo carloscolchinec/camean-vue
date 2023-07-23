@@ -1,64 +1,134 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="ZXing for JS">
 
-  <title>ZXing TypeScript | Decoding from camera stream</title>
+  <title>COLNETCAM | CODEBAR</title>
 
   <!-- Stylesheets -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Text:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'SF Pro Text', sans-serif;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 360px;
+      background-color: #F3F4F6;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      margin: 8px 0;
+    }
+
+    .button-blue {
+      background-color: #3B82F6;
+      color: #fff;
+    }
+
+    .button-blue:hover {
+      background-color: #2563EB;
+    }
+
+    .button-red {
+      background-color: #EF4444;
+      color: #fff;
+    }
+
+    .button-red:hover {
+      background-color: #DC2626;
+    }
+
+    .result {
+      font-size: 16px;
+      color: #555;
+      margin-top: 20px;
+    }
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+      height: 200px;
+      margin: 0 auto;
+    }
+
+    .video {
+      width: 100%;
+      height: 100%;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+    }
+
+    .scanner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .barcode-box {
+      position: absolute;
+      border: 2px solid #10B981;
+      pointer-events: none;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-200">
+<body class="bg-blue-50">
 
-  <main class="container mx-auto px-4 py-8">
+  <main class="container">
+    <div class="card">
+      <h1 class="title">COLNETCAM | CODEBAR</h1>
+      <button id="startButton" class="button button-blue">Start</button>
+      <button id="resetButton" class="button button-red">Reset</button>
 
-    <section class="bg-white shadow-lg rounded-lg p-6">
-      <h1 class="text-2xl font-semibold mb-4">Scan 1D/2D Code from Video Camera</h1>
-
-      <p>This example shows how to scan any supported 1D/2D code with ZXing javascript library from the device video
-        camera. If more
-        than one video input devices are available (for example front and back camera) the example shows how to read
-        them and use a select to change the input device.</p>
-
-      <div class="flex justify-between items-center mt-4">
-        <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
-          Start
-        </button>
-        <button id="resetButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
-          Reset
-        </button>
-      </div>
-
-      <div class="mt-4">
-        <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
-        <canvas id="scanner-overlay" class="absolute top-0 left-0"></canvas>
+      <div class="video-container">
+        <video id="video" class="video"></video>
+        <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
+        <div id="barcode-box" class="barcode-box"></div>
       </div>
 
       <div id="sourceSelectPanel" class="mt-4 hidden">
-        <label for="sourceSelect" class="font-semibold">Change video source:</label>
+        <label for="sourceSelect" class="font-semibold text-gray-800">Change video source:</label>
         <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
         </select>
       </div>
 
-      <div class="mt-4">
-        <label class="font-semibold">Result:</label>
-        <pre><code id="result" class="bg-gray-100 p-2 rounded"></code></pre>
-      </div>
-
-      <p class="mt-4">See the <a href="https://github.com/zxing-js/library/tree/master/docs/examples/multi-camera/">source
-          code</a>
-        for this example.</p>
-    </section>
-
-    <footer class="mt-8 text-center">
-      <p class="text-gray-600">ZXing TypeScript Demo. Licensed under the <a target="_blank"
-          href="https://github.com/zxing-js/library#license" title="MIT">MIT</a>.</p>
-    </footer>
-
+      <div class="result" id="result"></div>
+    </div>
   </main>
 
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
