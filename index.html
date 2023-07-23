@@ -17,29 +17,31 @@
   <main class="container mx-auto px-4 py-8">
 
     <section class="bg-white shadow-lg rounded-lg p-6">
-      <h1 class="text-2xl font-semibold mb-4">Scan Code from Camera</h1>
+      <h1 class="text-2xl font-semibold mb-4">Scan 1D/2D Code from Video Camera</h1>
 
       <div class="flex justify-between items-center mt-4">
         <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
-          Start Scanning
+          Start
         </button>
         <button id="resetButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
           Reset
         </button>
       </div>
 
-      <div class="mt-4">
+      <div class="mt-4 relative">
         <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
-        <canvas id="scanner-overlay" class="absolute top-0 left-0"></canvas>
+        <div id="barcode-box" class="absolute border-2 border-green-500 pointer-events-none"></div>
+        <canvas id="scanner-overlay" class="absolute top-0 left-0 pointer-events-none"></canvas>
       </div>
 
       <div id="sourceSelectPanel" class="mt-4 hidden">
-        <label for="sourceSelect" class="font-semibold">Change camera:</label>
+        <label for="sourceSelect" class="font-semibold">Change video source:</label>
         <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
         </select>
       </div>
 
       <div class="mt-4">
+        <label class="font-semibold">Result:</label>
         <pre><code id="result" class="bg-gray-100 p-2 rounded"></code></pre>
       </div>
     </section>
@@ -77,10 +79,13 @@
               if (result) {
                 console.log(result)
                 document.getElementById('result').textContent = result.text
+                drawBoundingBox(result);
               }
               if (err && !(err instanceof ZXing.NotFoundException)) {
                 console.error(err)
                 document.getElementById('result').textContent = err
+              } else {
+                clearBoundingBox();
               }
             })
             console.log(`Started continous decode from camera with id ${selectedDeviceId}`)
@@ -89,6 +94,7 @@
           document.getElementById('resetButton').addEventListener('click', () => {
             codeReader.reset()
             document.getElementById('result').textContent = '';
+            clearBoundingBox();
             console.log('Reset.')
           })
 
@@ -96,7 +102,37 @@
         .catch((err) => {
           console.error(err)
         })
-    })
+
+    function drawBoundingBox(result) {
+      const boxElement = document.getElementById('barcode-box');
+      const videoElement = document.getElementById('video');
+      const canvasElement = document.getElementById('scanner-overlay');
+
+      const canvasContext = canvasElement.getContext('2d');
+      canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasContext.beginPath();
+      canvasContext.moveTo(result.location.topLeft.x * videoElement.width, result.location.topLeft.y * videoElement.height);
+      canvasContext.lineTo(result.location.topRight.x * videoElement.width, result.location.topRight.y * videoElement.height);
+      canvasContext.lineTo(result.location.bottomRight.x * videoElement.width, result.location.bottomRight.y * videoElement.height);
+      canvasContext.lineTo(result.location.bottomLeft.x * videoElement.width, result.location.bottomLeft.y * videoElement.height);
+      canvasContext.lineTo(result.location.topLeft.x * videoElement.width, result.location.topLeft.y * videoElement.height);
+      canvasContext.stroke();
+
+      const rectHeight = (result.location.bottomLeft.y - result.location.topLeft.y) * videoElement.height;
+      boxElement.style.width = `${rectHeight * 1.6}px`;
+      boxElement.style.height = `${rectHeight}px`;
+      boxElement.style.top = `${result.location.topLeft.y * videoElement.height}px`;
+      boxElement.style.left = `${(result.location.topLeft.x - 0.3) * videoElement.width}px`;
+    }
+
+    function clearBoundingBox() {
+      const boxElement = document.getElementById('barcode-box');
+      boxElement.style.width = '0';
+      boxElement.style.height = '0';
+      boxElement.style.top = '0';
+      boxElement.style.left = '0';
+    }
+
   </script>
 
 </body>
