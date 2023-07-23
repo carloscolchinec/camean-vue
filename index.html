@@ -17,7 +17,12 @@
   <main class="container mx-auto px-4 py-8">
 
     <section class="bg-white shadow-lg rounded-lg p-6">
-      <h1 class="text-2xl font-semibold mb-4">ColnetCam | Barcode</h1>
+      <h1 class="text-2xl font-semibold mb-4">Scan 1D/2D Code from Video Camera</h1>
+
+      <p>This example shows how to scan any supported 1D/2D code with ZXing javascript library from the device video
+        camera. If more
+        than one video input devices are available (for example front and back camera) the example shows how to read
+        them and use a select to change the input device.</p>
 
       <div class="flex justify-between items-center mt-4">
         <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
@@ -56,6 +61,7 @@
 
   </main>
 
+  <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function () {
