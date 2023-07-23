@@ -3,10 +3,10 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="author" content="ZXing for JS">
 
-  <title>ZXing Code Scanner</title>
+  <title>ZXing TypeScript | Decoding from camera stream</title>
 
   <!-- Stylesheets -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -16,10 +16,16 @@
 
   <main class="container mx-auto px-4 py-8">
 
-    <section class="bg-white shadow-lg rounded-lg p-6">
+    <section class="bg-white shadow-lg rounded-lg p-6 mx-auto sm:w-96">
       <h1 class="text-2xl font-semibold mb-4">Scan 1D/2D Code from Video Camera</h1>
 
-      <div class="flex justify-between items-center mt-4">
+      <p class="mb-4">This example shows how to scan any supported 1D/2D code with ZXing javascript library from the device
+        video
+        camera. If more than one video input devices are available (for example front and back camera) the example shows
+        how to read
+        them and use a select to change the input device.</p>
+
+      <div class="flex justify-between items-center mb-4">
         <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
           Start
         </button>
@@ -28,23 +34,28 @@
         </button>
       </div>
 
-      <div class="mt-4 relative">
-        <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
+      <div class="relative mb-4">
+        <video id="video" width="100%" style="max-height: 20rem; border: 1px solid gray;"></video>
         <div id="barcode-box" class="absolute border-2 border-green-500 pointer-events-none"></div>
         <canvas id="scanner-overlay" class="absolute top-0 left-0 pointer-events-none"></canvas>
       </div>
 
-      <div id="sourceSelectPanel" class="mt-4 hidden">
+      <div id="sourceSelectPanel" class="hidden">
         <label for="sourceSelect" class="font-semibold">Change video source:</label>
         <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
         </select>
       </div>
 
-      <div class="mt-4">
+      <div>
         <label class="font-semibold">Result:</label>
         <pre><code id="result" class="bg-gray-100 p-2 rounded"></code></pre>
       </div>
     </section>
+
+    <footer class="mt-8 text-center">
+      <p class="text-gray-600">ZXing TypeScript Demo. Licensed under the <a target="_blank"
+          href="https://github.com/zxing-js/library#license" title="MIT">MIT</a>.</p>
+    </footer>
 
   </main>
 
@@ -54,6 +65,25 @@
       let selectedDeviceId;
       const codeReader = new ZXing.BrowserMultiFormatReader();
       console.log('ZXing code reader initialized');
+
+      function startScanner() {
+        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+          if (result) {
+            console.log(result);
+            document.getElementById('result').textContent = result.text;
+            drawBoundingBox(result);
+          }
+          if (err && !(err instanceof ZXing.NotFoundException)) {
+            console.error(err);
+            document.getElementById('result').textContent = err;
+          } else {
+            clearBoundingBox();
+            startScanner(); // Reiniciar el escaneo
+          }
+        });
+        console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
+      }
+
       codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
           const sourceSelect = document.getElementById('sourceSelect');
@@ -68,39 +98,21 @@
 
             sourceSelect.onchange = () => {
               selectedDeviceId = sourceSelect.value;
+              codeReader.reset();
+              document.getElementById('result').textContent = '';
+              clearBoundingBox();
+              startScanner(); // Reiniciar el escaneo al cambiar de cámara
             };
 
             const sourceSelectPanel = document.getElementById('sourceSelectPanel');
-            sourceSelectPanel.style.display = 'block';
+            sourceSelectPanel.classList.remove('hidden');
           }
+
+          startScanner(); // Comenzar el escaneo automáticamente al cargar la página
         })
         .catch((err) => {
           console.error(err);
         });
-
-      document.getElementById('startButton').addEventListener('click', () => {
-        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-          if (result) {
-            console.log(result);
-            document.getElementById('result').textContent = result.text;
-            drawBoundingBox(result);
-          }
-          if (err && !(err instanceof ZXing.NotFoundException)) {
-            console.error(err);
-            document.getElementById('result').textContent = err;
-          } else {
-            clearBoundingBox();
-          }
-        });
-        console.log(`Started continous decode from camera with id ${selectedDeviceId}`);
-      });
-
-      document.getElementById('resetButton').addEventListener('click', () => {
-        codeReader.reset();
-        document.getElementById('result').textContent = '';
-        clearBoundingBox();
-        console.log('Reset.');
-      });
 
       function drawBoundingBox(result) {
         const boxElement = document.getElementById('barcode-box');
@@ -109,14 +121,17 @@
 
         const canvasContext = canvasElement.getContext('2d');
         canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        const lineWidth = 2;
+        const lineColor = '#00FF00';
+        canvasContext.strokeStyle = lineColor;
+        canvasContext.lineWidth = lineWidth;
+
         canvasContext.beginPath();
         canvasContext.moveTo(result.location.topLeft.x, result.location.topLeft.y);
         canvasContext.lineTo(result.location.topRight.x, result.location.topRight.y);
         canvasContext.lineTo(result.location.bottomRight.x, result.location.bottomRight.y);
         canvasContext.lineTo(result.location.bottomLeft.x, result.location.bottomLeft.y);
         canvasContext.lineTo(result.location.topLeft.x, result.location.topLeft.y);
-        canvasContext.strokeStyle = 'green';
-        canvasContext.lineWidth = 2;
         canvasContext.stroke();
 
         const videoRect = videoElement.getBoundingClientRect();
