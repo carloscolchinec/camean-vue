@@ -40,7 +40,7 @@
       <video ref="cameraVideo" playsinline="true"></video>
       <canvas ref="cameraOverlay" width="320" height="240"></canvas>
     </div>
-    <select v-if="cameras.length > 0" v-model="selectedCamera">
+    <select v-if="cameras.length > 0" v-model="selectedCamera" @change="restartScanner">
       <option v-for="(camera, index) in cameras" :key="index" :value="index">
         {{ camera.label }}
       </option>
@@ -55,20 +55,29 @@
         return {
           cameras: [],
           selectedCamera: null,
+          scannerActive: false,
         };
       },
-      mounted() {
-        this.initCamera();
+      async mounted() {
+        await this.initCamera();
+        this.restartScanner();
+      },
+      watch: {
+        selectedCamera() {
+          this.restartScanner();
+        },
       },
       methods: {
         async initCamera() {
           try {
+            this.scannerActive = false;
             const codeReader = new ZXing.BrowserBarcodeReader();
             this.cameras = await this.getAvailableCameras();
 
             if (this.cameras.length > 0) {
               this.selectedCamera = 0;
-              this.startScanner();
+            } else {
+              alert("No se encontraron cámaras disponibles.");
             }
           } catch (err) {
             console.error("Error al acceder a la cámara:", err);
@@ -89,7 +98,7 @@
           const cameraOverlay = this.$refs.cameraOverlay;
           const barcodeNumber = document.createElement("div");
           const canvasContext = cameraOverlay.getContext("2d");
-          let scannerActive = true;
+          this.scannerActive = true;
 
           cameraVideo.srcObject = null;
           const selectedDeviceId = this.cameras[this.selectedCamera].deviceId;
@@ -101,7 +110,7 @@
             await cameraVideo.play();
           } catch (err) {
             console.error("Error al acceder a la cámara:", err);
-            scannerActive = false;
+            this.scannerActive = false;
             alert("No se pudo acceder a la cámara o el acceso fue denegado por el usuario.");
             return;
           }
@@ -110,7 +119,7 @@
           barcodeNumber.classList.add("barcode-number");
 
           async function scanBarcode() {
-            if (!scannerActive) return;
+            if (!this.scannerActive) return;
 
             try {
               const result = await codeReader.decodeFromVideoElement(
@@ -124,33 +133,21 @@
               }
 
               // Continuar escaneando
-              scanBarcode();
+              scanBarcode.call(this);
             } catch (err) {
               console.error("Error al escanear:", err);
             }
           }
 
-          function drawDetectedBarcode(detectedCode) {
-            canvasContext.clearRect(0, 0, cameraOverlay.width, cameraOverlay.height);
-
-            if (!detectedCode) return;
-
-            // Dibujar rectángulo
-            canvasContext.strokeStyle = "#f00";
-            canvasContext.lineWidth = 2;
-            canvasContext.strokeRect(
-              cameraOverlay.width / 4,
-              cameraOverlay.height / 4,
-              cameraOverlay.width / 2,
-              cameraOverlay.height / 2
-            );
-
-            // Dibujar número de código de barras arriba del rectángulo
-            barcodeNumber.textContent = "[" + detectedCode + "]";
-          }
-
           // Iniciar el escaneo automáticamente
-          scanBarcode();
+          scanBarcode.call(this);
+        },
+        stopScanner() {
+          this.scannerActive = false;
+        },
+        restartScanner() {
+          this.stopScanner();
+          this.startScanner();
         },
       },
     }).mount("#app");
