@@ -24,7 +24,13 @@ new Vue({
 
         try {
           const codeReader = new ZXing.BrowserBarcodeReader();
-          const constraints = { video: { facingMode: "environment" } };
+          const constraints = {
+            video: {
+              facingMode: "environment",
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+          };
           const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
           cameraVideo.srcObject = stream;
