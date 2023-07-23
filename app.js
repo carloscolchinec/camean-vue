@@ -6,15 +6,16 @@ new Vue({
     this.initScanner();
   },
   methods: {
-    initScanner() {
+    async initScanner() {
       const cameraView = document.querySelector(".camera-view");
-      const cameraVideo = document.querySelector(".camera-video");
+      const cameraVideo = document.createElement("video");
       const cameraOverlay = document.querySelector(".camera-overlay");
       const barcodeNumber = document.createElement("div");
 
       const canvasContext = cameraOverlay.getContext("2d");
       let scannerActive = true;
 
+      cameraView.appendChild(cameraVideo);
       cameraView.appendChild(barcodeNumber);
       barcodeNumber.classList.add("barcode-number");
 
@@ -23,9 +24,16 @@ new Vue({
 
         try {
           const codeReader = new ZXing.BrowserBarcodeReader();
-          const result = await codeReader.decodeFromStream(
-            { video: { facingMode: "environment" } },
-            cameraVideo
+          const constraints = { video: { facingMode: "environment" } };
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+          cameraVideo.srcObject = stream;
+          await cameraVideo.play();
+
+          const result = await codeReader.decodeFromVideoElement(
+            cameraVideo,
+            cameraVideo.width,
+            cameraVideo.height
           );
 
           if (result && result.text) {
@@ -58,8 +66,13 @@ new Vue({
         barcodeNumber.textContent = "[" + detectedCode + "]";
       }
 
-      // Iniciar el escaneo automáticamente
-      scanBarcode();
+      // Verificar si getUserMedia está disponible en el navegador
+      if ("mediaDevices" in navigator && "getUserMedia" in navigator.mediaDevices) {
+        // Iniciar el escaneo automáticamente
+        scanBarcode();
+      } else {
+        console.error("getUserMedia no es compatible en este navegador.");
+      }
     },
   },
 });
