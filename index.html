@@ -1,153 +1,119 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lector de Códigos de Barra</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="ZXing for JS">
+
+  <title>ZXing TypeScript | Decoding from camera stream</title>
+
+  <!-- Stylesheets -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    #app {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    #barcode-scanner {
-      width: 100%;
-      height: auto;
-      border: 2px solid #333;
-      margin-bottom: 10px;
-    }
-
-    #scanner-result {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .camera-actions {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .camera-action-btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      background-color: #333;
-      color: #fff;
-      cursor: pointer;
-    }
-  </style>
 </head>
-<body>
-  <div id="app" class="p-4 mt-8 border rounded-lg shadow-lg">
-    <h2 class="text-xl font-semibold mb-4 text-center">Lector de Códigos de Barra</h2>
-    <div class="relative">
-      <video id="barcode-scanner"></video>
-      <canvas id="scanner-overlay" class="absolute top-0 left-0"></canvas>
-    </div>
-    <div id="scanner-result" class="text-lg font-semibold mt-4 text-center"></div>
-    <div class="camera-actions">
-      <button id="scan-btn" class="camera-action-btn">Escanear</button>
-      <button id="switch-camera" class="camera-action-btn">Cambiar Cámara</button>
-    </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const video = document.getElementById('barcode-scanner');
-      const overlay = document.getElementById('scanner-overlay');
-      const scanBtn = document.getElementById('scan-btn');
-      const switchCameraBtn = document.getElementById('switch-camera');
-      const scannerResult = document.getElementById('scanner-result');
+<body class="bg-gray-200">
 
-      let activeCamera = 0;
-      let scannerActive = false;
+  <main class="container mx-auto px-4 py-8">
 
-      async function switchCamera() {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    <section class="bg-white shadow-lg rounded-lg p-6">
+      <h1 class="text-2xl font-semibold mb-4">Scan 1D/2D Code from Video Camera</h1>
 
-        if (videoDevices.length > 1) {
-          activeCamera = (activeCamera + 1) % videoDevices.length;
-          startScanner(videoDevices[activeCamera].deviceId);
-        } else {
-          console.error('No se encontraron cámaras disponibles.');
-        }
-      }
+      <p>This example shows how to scan any supported 1D/2D code with ZXing javascript library from the device video
+        camera. If more
+        than one video input devices are available (for example front and back camera) the example shows how to read
+        them and use a select to change the input device.</p>
 
-      function startScanner(deviceId) {
-        navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } })
-          .then(stream => {
-            video.srcObject = stream;
-            video.play();
-            scannerActive = true;
-            scanBarcode();
+      <div class="flex justify-between items-center mt-4">
+        <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
+          Start
+        </button>
+        <button id="resetButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
+          Reset
+        </button>
+      </div>
+
+      <div class="mt-4">
+        <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
+        <canvas id="scanner-overlay" class="absolute top-0 left-0"></canvas>
+      </div>
+
+      <div id="sourceSelectPanel" class="mt-4 hidden">
+        <label for="sourceSelect" class="font-semibold">Change video source:</label>
+        <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
+        </select>
+      </div>
+
+      <div class="mt-4">
+        <label class="font-semibold">Result:</label>
+        <pre><code id="result" class="bg-gray-100 p-2 rounded"></code></pre>
+      </div>
+
+      <p class="mt-4">See the <a href="https://github.com/zxing-js/library/tree/master/docs/examples/multi-camera/">source
+          code</a>
+        for this example.</p>
+    </section>
+
+    <footer class="mt-8 text-center">
+      <p class="text-gray-600">ZXing TypeScript Demo. Licensed under the <a target="_blank"
+          href="https://github.com/zxing-js/library#license" title="MIT">MIT</a>.</p>
+    </footer>
+
+  </main>
+
+  <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function () {
+      let selectedDeviceId;
+      const codeReader = new ZXing.BrowserMultiFormatReader()
+      console.log('ZXing code reader initialized')
+      codeReader.listVideoInputDevices()
+        .then((videoInputDevices) => {
+          const sourceSelect = document.getElementById('sourceSelect')
+          selectedDeviceId = videoInputDevices[0].deviceId
+          if (videoInputDevices.length >= 1) {
+            videoInputDevices.forEach((element) => {
+              const sourceOption = document.createElement('option')
+              sourceOption.text = element.label
+              sourceOption.value = element.deviceId
+              sourceSelect.appendChild(sourceOption)
+            })
+
+            sourceSelect.onchange = () => {
+              selectedDeviceId = sourceSelect.value;
+            };
+
+            const sourceSelectPanel = document.getElementById('sourceSelectPanel')
+            sourceSelectPanel.style.display = 'block'
+          }
+
+          document.getElementById('startButton').addEventListener('click', () => {
+            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+              if (result) {
+                console.log(result)
+                document.getElementById('result').textContent = result.text
+              }
+              if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error(err)
+                document.getElementById('result').textContent = err
+              }
+            })
+            console.log(`Started continous decode from camera with id ${selectedDeviceId}`)
           })
-          .catch(error => {
-            console.error('Error al acceder a la cámara:', error);
-          });
-      }
 
-      function scanBarcode() {
-        if (scannerActive) {
-          const codeReader = new ZXing.BrowserMultiFormatReader();
-          codeReader.decodeFromVideoElement(video, overlay, (result, error) => {
-            if (result) {
-              drawBoundingBox(result);
-              displayScannedCode(result.text);
-            }
-            if (error && !error.includes('No barcode')) {
-              console.error('Error al escanear:', error);
-            }
-            scanBarcode(); // Continuar escaneando
-          });
-        }
-      }
+          document.getElementById('resetButton').addEventListener('click', () => {
+            codeReader.reset()
+            document.getElementById('result').textContent = '';
+            console.log('Reset.')
+          })
 
-      function drawBoundingBox(result) {
-        const canvasContext = overlay.getContext('2d');
-        const lineWidth = 2;
-        const lineColor = '#00FF00';
-
-        canvasContext.clearRect(0, 0, overlay.width, overlay.height);
-        canvasContext.strokeStyle = lineColor;
-        canvasContext.lineWidth = lineWidth;
-        canvasContext.beginPath();
-        canvasContext.moveTo(result.location.topLeft.x, result.location.topLeft.y);
-        canvasContext.lineTo(result.location.topRight.x, result.location.topRight.y);
-        canvasContext.lineTo(result.location.bottomRight.x, result.location.bottomRight.y);
-        canvasContext.lineTo(result.location.bottomLeft.x, result.location.bottomLeft.y);
-        canvasContext.lineTo(result.location.topLeft.x, result.location.topLeft.y);
-        canvasContext.stroke();
-      }
-
-      function displayScannedCode(code) {
-        scannerResult.textContent = "[" + code + "]";
-      }
-
-      scanBtn.addEventListener('click', () => {
-        scannerActive = !scannerActive;
-        if (scannerActive) {
-          scanBarcode();
-          scanBtn.textContent = 'Detener';
-        } else {
-          scanBtn.textContent = 'Escanear';
-        }
-      });
-
-      switchCameraBtn.addEventListener('click', switchCamera);
-
-      // Verificar si getUserMedia está disponible en el navegador
-      if ("mediaDevices" in navigator && "getUserMedia" in navigator.mediaDevices) {
-        // Iniciar el escaneo utilizando la cámara por defecto
-        switchCamera();
-      } else {
-        console.error("getUserMedia no es compatible en este navegador.");
-      }
-    });
+        })
+        .catch((err) => {
+          console.error(err)
+        })
+    })
   </script>
+
 </body>
+
 </html>
