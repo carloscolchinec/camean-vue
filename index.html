@@ -5,7 +5,7 @@
   <style>
     #app {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       height: 100vh;
       background-color: #f5f5f5;
@@ -16,6 +16,7 @@
       height: 240px;
       border: 1px solid #ccc;
       overflow: hidden;
+      margin-bottom: 20px;
     }
     .detected-rectangle {
       position: absolute;
@@ -36,13 +37,123 @@
 <body>
   <div id="app">
     <div class="camera-view">
-      <video class="camera-video" playsinline="true"></video>
-      <canvas class="camera-overlay" width="320" height="240"></canvas>
+      <video ref="cameraVideo" playsinline="true"></video>
+      <canvas ref="cameraOverlay" width="320" height="240"></canvas>
     </div>
+    <select v-if="cameras.length > 0" v-model="selectedCamera">
+      <option v-for="(camera, index) in cameras" :key="index" :value="index">
+        {{ camera.label }}
+      </option>
+    </select>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/vue@3.2.25/dist/vue.global.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js"></script>
-  <script src="app.js"></script>
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          cameras: [],
+          selectedCamera: null,
+        };
+      },
+      mounted() {
+        this.initCamera();
+      },
+      methods: {
+        async initCamera() {
+          try {
+            const codeReader = new ZXing.BrowserBarcodeReader();
+            this.cameras = await this.getAvailableCameras();
+
+            if (this.cameras.length > 0) {
+              this.selectedCamera = 0;
+              this.startScanner();
+            }
+          } catch (err) {
+            console.error("Error al acceder a la cámara:", err);
+            alert("No se pudo acceder a la cámara o el acceso fue denegado por el usuario.");
+          }
+        },
+        async getAvailableCameras() {
+          try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            return devices.filter((device) => device.kind === "videoinput");
+          } catch (err) {
+            console.error("Error al obtener las cámaras:", err);
+            return [];
+          }
+        },
+        async startScanner() {
+          const cameraVideo = this.$refs.cameraVideo;
+          const cameraOverlay = this.$refs.cameraOverlay;
+          const barcodeNumber = document.createElement("div");
+          const canvasContext = cameraOverlay.getContext("2d");
+          let scannerActive = true;
+
+          cameraVideo.srcObject = null;
+          const selectedDeviceId = this.cameras[this.selectedCamera].deviceId;
+          const constraints = { video: { deviceId: selectedDeviceId } };
+
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            cameraVideo.srcObject = stream;
+            await cameraVideo.play();
+          } catch (err) {
+            console.error("Error al acceder a la cámara:", err);
+            scannerActive = false;
+            alert("No se pudo acceder a la cámara o el acceso fue denegado por el usuario.");
+            return;
+          }
+
+          cameraOverlay.appendChild(barcodeNumber);
+          barcodeNumber.classList.add("barcode-number");
+
+          async function scanBarcode() {
+            if (!scannerActive) return;
+
+            try {
+              const result = await codeReader.decodeFromVideoElement(
+                cameraVideo,
+                cameraVideo.width,
+                cameraVideo.height
+              );
+
+              if (result && result.text) {
+                drawDetectedBarcode(result.text);
+              }
+
+              // Continuar escaneando
+              scanBarcode();
+            } catch (err) {
+              console.error("Error al escanear:", err);
+            }
+          }
+
+          function drawDetectedBarcode(detectedCode) {
+            canvasContext.clearRect(0, 0, cameraOverlay.width, cameraOverlay.height);
+
+            if (!detectedCode) return;
+
+            // Dibujar rectángulo
+            canvasContext.strokeStyle = "#f00";
+            canvasContext.lineWidth = 2;
+            canvasContext.strokeRect(
+              cameraOverlay.width / 4,
+              cameraOverlay.height / 4,
+              cameraOverlay.width / 2,
+              cameraOverlay.height / 2
+            );
+
+            // Dibujar número de código de barras arriba del rectángulo
+            barcodeNumber.textContent = "[" + detectedCode + "]";
+          }
+
+          // Iniciar el escaneo automáticamente
+          scanBarcode();
+        },
+      },
+    }).mount("#app");
+  </script>
 </body>
 </html>
