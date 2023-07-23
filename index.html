@@ -17,7 +17,7 @@
   <main class="container mx-auto px-4 py-8">
 
     <section class="bg-white shadow-lg rounded-lg p-6">
-      <h1 class="text-3xl font-semibold mb-4">ColnetCam | Barcode</h1>
+      <h1 class="text-2xl font-semibold mb-4">ColnetCam | Barcode</h1>
 
       <div class="flex justify-between items-center mt-4">
         <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
@@ -28,10 +28,9 @@
         </button>
       </div>
 
-      <div class="mt-4 relative">
-        <video id="video" width="100%" style="max-height: 20rem; border: 1px solid gray;"></video>
-        <canvas id="scanner-overlay" class="absolute top-0 left-0" style="width: 100%; height: 100%;"></canvas>
-        <div id="barcode-box" class="absolute border-2 border-green-500 pointer-events-none"></div>
+      <div class="mt-4">
+        <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
+        <canvas id="scanner-overlay" class="absolute top-0 left-0"></canvas>
       </div>
 
       <div id="sourceSelectPanel" class="mt-4 hidden">
@@ -45,7 +44,15 @@
         <pre><code id="result" class="bg-gray-100 p-2 rounded"></code></pre>
       </div>
 
+      <p class="mt-4">See the <a href="https://github.com/zxing-js/library/tree/master/docs/examples/multi-camera/">source
+          code</a>
+        for this example.</p>
     </section>
+
+    <footer class="mt-8 text-center">
+      <p class="text-gray-600">ZXing TypeScript Demo. Licensed under the <a target="_blank"
+          href="https://github.com/zxing-js/library#license" title="MIT">MIT</a>.</p>
+    </footer>
 
   </main>
 
@@ -53,103 +60,53 @@
   <script type="text/javascript">
     window.addEventListener('load', function () {
       let selectedDeviceId;
-      const codeReader = new ZXing.BrowserMultiFormatReader();
-      console.log('ZXing code reader initialized');
-
-      function startScanner() {
-        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-          if (result) {
-            console.log(result);
-            document.getElementById('result').textContent = result.text;
-            drawBoundingBox(result);
-          }
-          if (err && !(err instanceof ZXing.NotFoundException)) {
-            console.error(err);
-            document.getElementById('result').textContent = err;
-          } else {
-            clearBoundingBox();
-            startScanner(); // Reiniciar el escaneo
-          }
-        });
-        console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
-      }
-
+      const codeReader = new ZXing.BrowserMultiFormatReader()
+      console.log('ZXing code reader initialized')
       codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
-          const sourceSelect = document.getElementById('sourceSelect');
-          selectedDeviceId = videoInputDevices[0].deviceId;
+          const sourceSelect = document.getElementById('sourceSelect')
+          selectedDeviceId = videoInputDevices[0].deviceId
           if (videoInputDevices.length >= 1) {
             videoInputDevices.forEach((element) => {
-              const sourceOption = document.createElement('option');
-              sourceOption.text = element.label;
-              sourceOption.value = element.deviceId;
-              sourceSelect.appendChild(sourceOption);
-            });
+              const sourceOption = document.createElement('option')
+              sourceOption.text = element.label
+              sourceOption.value = element.deviceId
+              sourceSelect.appendChild(sourceOption)
+            })
 
             sourceSelect.onchange = () => {
               selectedDeviceId = sourceSelect.value;
-              codeReader.reset();
-              document.getElementById('result').textContent = '';
-              clearBoundingBox();
-              startScanner(); // Reiniciar el escaneo al cambiar de cámara
             };
 
-            const sourceSelectPanel = document.getElementById('sourceSelectPanel');
-            sourceSelectPanel.classList.remove('hidden');
+            const sourceSelectPanel = document.getElementById('sourceSelectPanel')
+            sourceSelectPanel.style.display = 'block'
           }
 
-          startScanner(); // Comenzar el escaneo automáticamente al cargar la página
+          document.getElementById('startButton').addEventListener('click', () => {
+            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+              if (result) {
+                console.log(result)
+                document.getElementById('result').textContent = result.text
+              }
+              if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error(err)
+                document.getElementById('result').textContent = err
+              }
+            })
+            console.log(`Started continous decode from camera with id ${selectedDeviceId}`)
+          })
+
+          document.getElementById('resetButton').addEventListener('click', () => {
+            codeReader.reset()
+            document.getElementById('result').textContent = '';
+            console.log('Reset.')
+          })
+
         })
         .catch((err) => {
-          console.error(err);
-        });
-
-      function drawBoundingBox(result) {
-        const boxElement = document.getElementById('barcode-box');
-        const videoElement = document.getElementById('video');
-        const canvasElement = document.getElementById('scanner-overlay');
-
-        const canvasContext = canvasElement.getContext('2d');
-        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        const lineWidth = 2;
-        const lineColor = '#00FF00';
-        canvasContext.strokeStyle = lineColor;
-        canvasContext.lineWidth = lineWidth;
-
-        canvasContext.beginPath();
-        canvasContext.moveTo(result.location.topLeft.x, result.location.topLeft.y);
-        canvasContext.lineTo(result.location.topRight.x, result.location.topRight.y);
-        canvasContext.lineTo(result.location.bottomRight.x, result.location.bottomRight.y);
-        canvasContext.lineTo(result.location.bottomLeft.x, result.location.bottomLeft.y);
-        canvasContext.lineTo(result.location.topLeft.x, result.location.topLeft.y);
-        canvasContext.stroke();
-
-        // Centrar el cuadro en el video
-        const videoRect = videoElement.getBoundingClientRect();
-        const videoOffsetLeft = videoRect.left + window.scrollX;
-        const videoOffsetTop = videoRect.top + window.scrollY;
-
-        const boxWidth = result.location.topRight.x - result.location.topLeft.x;
-        const boxHeight = result.location.bottomLeft.y - result.location.topLeft.y;
-
-        const boxCenterX = result.location.topLeft.x + boxWidth / 2;
-        const boxCenterY = result.location.topLeft.y + boxHeight / 2;
-
-        const boxLeft = videoOffsetLeft + boxCenterX - boxWidth / 2;
-        const boxTop = videoOffsetTop + boxCenterY - boxHeight / 2;
-
-        boxElement.style.width = `${boxWidth}px`;
-        boxElement.style.height = `${boxHeight}px`;
-        boxElement.style.left = `${boxLeft}px`;
-        boxElement.style.top = `${boxTop}px`;
-      }
-
-      function clearBoundingBox() {
-        const boxElement = document.getElementById('barcode-box');
-        boxElement.style.width = '0';
-        boxElement.style.height = '0';
-      }
-    });
+          console.error(err)
+        })
+    })
   </script>
 
 </body>
