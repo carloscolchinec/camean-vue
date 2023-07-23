@@ -158,8 +158,16 @@
                 </select>
             </div>
 
-            <div class="result" id="result"></div>
+            <div class="badge-container mt-2" id="badgeContainer"></div>
+            
+            <div class="card mt-4">
+                <h1 class="title">Foto Tomada</h1>
+                <div class="photo-container">
+                    <img id="capturedPhoto" class="captured-photo" alt="Captured Photo">
+                </div>
+            </div>
         </div>
+
     </main>
 
     <!-- Agregamos la etiqueta de audio para reproducir el sonido -->
@@ -181,9 +189,14 @@
             const detectedBarcode = document.getElementById('detectedBarcode');
             const video = document.getElementById('video');
             const barcodeBox = document.querySelector('.barcode-box');
+            const badgeContainer = document.getElementById('badgeContainer');
             const scanSound = document.getElementById('scanSound');
             const maxVerificationCount = 3;
             let barcodeVerificationCount = {};
+
+            const capturedPhoto = document.getElementById('capturedPhoto');
+const videoContainer = document.querySelector('.video-container');
+
 
             function resetCanvas() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -214,6 +227,55 @@
     });
 }
 
+function capturePhoto(result) {
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+        // No se puede tomar la foto si el video no ha cargado completamente
+        return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Guardamos la foto en caché temporalmente como un Data URL
+    const dataURL = canvas.toDataURL();
+    capturedPhoto.src = dataURL;
+
+    // Mostrar el rectángulo alrededor del código de barras detectado
+    if (result.barcodeResult) {
+        const { x, y, width, height } = getBoundingBox(result.barcodeResult.resultPoints);
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, width, height);
+
+        // Mostrar el código detectado en la esquina superior derecha del rectángulo
+        detectedBarcode.textContent = `[${result.text}]`;
+        detectedBarcode.style.top = `${y}px`;
+        detectedBarcode.style.left = `${x + width}px`;
+        detectedBarcode.style.display = 'block';
+
+        // Actualizar posición del rectángulo barcode-box para seguir al código de barras detectado
+        barcodeBox.style.top = `${y}px`;
+        barcodeBox.style.left = `${x}px`;
+        barcodeBox.style.width = `${width}px`;
+        barcodeBox.style.height = `${height}px`;
+
+        // Guardar el número escaneado en el array
+        if (!scannedNumbers[result.text]) {
+            scannedNumbers[result.text] = [];
+        }
+        scannedNumbers[result.text].push(new Date());
+
+        // Restablecer el contenido del badge después de unos segundos (opcional)
+        badgeContainer.textContent = `Codigo Escaneado: ${result.text}`;
+        setTimeout(() => {
+            badgeContainer.textContent = '';
+        }, 2000); // 2 segundos
+    }
+}
+
 
             codeReader.listVideoInputDevices()
                 .then((videoInputDevices) => {
@@ -230,13 +292,11 @@
                         sourceSelect.onchange = () => {
                             codeReader.reset();
                             selectedDeviceId = sourceSelect.value;
-                            document.getElementById('result').textContent = '';
                             resetCanvas();
                             console.log(`Restarted with camera id ${selectedDeviceId}`);
                             codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
                                 if (!(err instanceof ZXing.NotFoundException)) {
                                     console.error(err);
-                                    document.getElementById('result').textContent = err;
                                 }
                             });
                         };
@@ -244,15 +304,16 @@
                         const sourceSelectPanel = document.getElementById('sourceSelectPanel');
                         sourceSelectPanel.style.display = 'block';
                     }
-
+                    
                     function onScanResult(result, err) {
                         if (result) {
-                            console.log(result);
-                            document.getElementById('result').textContent = result.text;
-
                             resetCanvas();
-
+                            
                             preloadScanSound();
+                            capturePhoto(result);
+
+                            badgeContainer.textContent = `Codigo Escaneado: ${result.text}`;
+      
                             // Mostrar el rectángulo alrededor del código de barras detectado
                             if (result.barcodeResult) {
                                 const { x, y, width, height } = getBoundingBox(result.barcodeResult.resultPoints);
@@ -280,7 +341,6 @@
                                 scannedNumbers[result.text].push(new Date());
 
                                 // Llamar a la función para mostrar el mensaje de alerta si se verificó más de 3 veces
-                                showAlertIfVerifiedMoreThanThreeTimes(result.text);
                             }
                         }
                         if (err && !(err instanceof ZXing.NotFoundException)) {
