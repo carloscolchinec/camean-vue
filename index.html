@@ -2,281 +2,354 @@
 <html lang="es">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="author" content="ZXing for JS">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="ZXing for JS">
 
-  <title>COLNETCAM | CODEBAR</title>
+    <title>COLNETCAM | CODEBAR</title>
 
-  <!-- Stylesheets -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Text:wght@300;400;500&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'SF Pro Text', sans-serif;
-    }
+    <!-- Stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Text:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
 
-    .container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+    <style>
+        body {
+            font-family: 'SF Pro Text', sans-serif;
+        }
 
-    .card {
-      width: 100%;
-      max-width: 360px;
-      background-color: #F3F4F6;
-      box-shadow: 0px 4px 12px rgba(64, 64, 64, 0.4);
-      border-radius: 12px;
-      padding: 24px;
-      position: relative;
-    }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-    .title {
-      font-size: 24px;
-      font-weight: 600;
-      color: #333;
-      text-align: center;
-      margin-bottom: 20px;
-    }
+        .card {
+            width: 100%;
+            max-width: 360px;
+            background-color: #F3F4F6;
+            box-shadow: 0px 4px 12px rgba(64, 64, 64, 0.4);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
 
-    .result {
-      font-size: 16px;
-      color: #555;
-      margin-top: 20px;
-    }
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    .video-container {
-      position: relative;
-      width: 100%;
-      max-width: 300px;
-      height: 5px;
-      margin: 0 auto;
-    }
+        .result {
+            font-size: 16px;
+            color: #555;
+            margin-top: 20px;
+        }
 
-    .video {
-      width: 100%;
-      height: auto;
-      border: 1px solid #fe8e14;
-      border-radius: 8px;
-    }
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            height: 5px;
+            margin: 0 auto;
+        }
+
+        .video {
+            width: 100%;
+            height: auto;
+            border: 1px solid #fe8e14;
+            border-radius: 8px;
+        }
 
 
-    .video {
-      width: 100%;
-      height: auto;
-      border: 1px solid #fe8e14;
-      border-radius: 8px;
-    }
+        .video {
+            width: 100%;
+            height: auto;
+            border: 1px solid #fe8e14;
+            border-radius: 8px;
+        }
 
-    .scanner-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
 
-    .barcode-box {
-      position: absolute;
-      border: 2px solid #fe8e14;
-      pointer-events: none;
-      z-index: 2;
-    }
+        .barcode-box {
+            position: absolute;
+            border: 2px solid #fe8e14;
+            pointer-events: none;
+            z-index: 2;
+        }
 
-    /* Estilos para el rectángulo y el código detectado */
-    .detected-barcode {
-      position: absolute;
-      border: 2px solid #fe8e14;
-      border-radius: 8px;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 500;
-      background-color: #fff;
-      color: #fe8e14;
-      padding: 4px 8px;
-      top: 8px;
-      right: 8px;
-      z-index: 2;
-    }
+        /* Estilos para el rectángulo y el código detectado */
+        .detected-barcode {
+            position: absolute;
+            border: 2px solid #fe8e14;
+            border-radius: 8px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: #fff;
+            color: #fe8e14;
+            padding: 4px 8px;
+            top: 8px;
+            right: 8px;
+            z-index: 2;
+        }
 
-    /* Estilos para la línea animada */
-    .animated-line {
-      position: absolute;
-      top: 0; /* La línea inicia en la parte superior del contenedor */
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background-color: #fe8e14;
-      z-index: 1;
-      animation: lineAnimation 1s infinite;
-    }
+        /* Estilos para la línea animada */
+        .animated-line {
+            position: absolute;
+            top: 0;
+            /* La línea inicia en la parte superior del contenedor */
+            left: 0;
+            width: 99%;
+            height: 2px;
+            background-color: #fe8e14;
+            z-index: 1;
+            animation: lineAnimation 5s infinite;
+        }
 
-    @keyframes lineAnimation {
-      0% {
-        transform: translateY(0); /* La línea inicia en su posición original (parte superior del contenedor) */
-      }
-      50% {
-        transform: translateY(100%); /* La línea se mueve hacia abajo hasta abarcar todo el contenedor */
-      }
-      100% {
-        transform: translateY(0); /* La línea vuelve a su posición original (parte superior del contenedor) */
-      }
-    }
-  </style>
+        @keyframes lineAnimation {
+            0% {
+                transform: translateY(-85px);
+                /* La línea inicia en su posición original (parte superior del contenedor) */
+            }
+
+            50% {
+                transform: translateY(85px);
+                /* La línea se mueve hacia abajo hasta abarcar todo el contenedor */
+            }
+
+            100% {
+                transform: translateY(-85px);
+                /* La línea vuelve a su posición original (parte superior del contenedor) */
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-blue-50">
     <main class="container">
         <div class="card">
-          <h1 class="title">COLNETCAM | CODEBAR</h1>
-          <div class="video-container">
-            <video id="video" class="video"></video>
-            <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
-            <div class="animated-line"></div> <!-- Agregamos la línea animada -->
-            <!-- Elemento para mostrar el código detectado -->
-            <div class="detected-barcode" id="detectedBarcode"></div>
-          </div>
-    
-          <div id="sourceSelectPanel" class="mt-4">
-            <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
-            <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
-            </select>
-          </div>
-    
-          <div class="result" id="result"></div>
+            <h1 class="title">COLNETCAM | CODEBAR</h1>
+            <div class="video-container">
+                <video id="video" class="video"></video>
+                <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
+                <div class="animated-line"></div>
+                <div class="detected-barcode" id="detectedBarcode"></div>
+                <div class="barcode-box"></div> <!-- Agregamos el div para el rectángulo -->
+            </div>
+
+            <div id="sourceSelectPanel" class="mt-4">
+                <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
+                <select id="sourceSelect"
+                    class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
+                </select>
+            </div>
+
+            <div class="result" id="result"></div>
         </div>
-      </main>
+    </main>
+
+    <!-- Agregamos la etiqueta de audio para reproducir el sonido -->
+    <audio id="scanSound" src="./barcode.mp3"></audio>
 
 
-    
-
-  <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
-  <script type="text/javascript">
-    window.addEventListener('load', function () {
-      let selectedDeviceId;
-      const codeReader = new ZXing.BrowserMultiFormatReader();
-      console.log('ZXing code reader initialized');
-      const canvas = document.getElementById('scanner-overlay');
-      const ctx = canvas.getContext('2d');
-      const detectedBarcode = document.getElementById('detectedBarcode');
-      const video = document.getElementById('video');
-      const animatedLine = document.querySelector('.animated-line');
-
-      function resetCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        detectedBarcode.style.display = 'none';
-      }
-
-      function adjustLinePosition() {
-      const videoHeight = video.clientHeight;
-      animatedLine.style.top = `${videoHeight / 2}px`;
-      sourceSelectPanel.style.marginTop = `${videoHeight + 20}px`;
-    }
 
 
-      codeReader.listVideoInputDevices()
-        .then((videoInputDevices) => {
-          const sourceSelect = document.getElementById('sourceSelect');
-          selectedDeviceId = videoInputDevices[0].deviceId;
-          if (videoInputDevices.length >= 1) {
-            videoInputDevices.forEach((element) => {
-              const sourceOption = document.createElement('option');
-              sourceOption.text = element.label;
-              sourceOption.value = element.deviceId;
-              sourceSelect.appendChild(sourceOption);
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.7/dist/sweetalert2.all.min.js"></script>
+
+    <script type="text/javascript">
+        window.addEventListener('load', function () {
+            let selectedDeviceId;
+            const codeReader = new ZXing.BrowserMultiFormatReader();
+            console.log('ZXing code reader initialized');
+            const canvas = document.getElementById('scanner-overlay');
+            const ctx = canvas.getContext('2d');
+            const detectedBarcode = document.getElementById('detectedBarcode');
+            const video = document.getElementById('video');
+            const barcodeBox = document.querySelector('.barcode-box');
+            const scanSound = document.getElementById('scanSound');
+            const maxVerificationCount = 3;
+            let barcodeVerificationCount = {};
+
+            function resetCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                detectedBarcode.style.display = 'none';
+                barcodeBox.style.display = 'none';
+            }
+
+            function adjustLinePosition() {
+                const videoHeight = video.clientHeight;
+                const animatedLine = document.querySelector('.animated-line');
+                animatedLine.style.top = `${videoHeight / 2}px`;
+                sourceSelectPanel.style.marginTop = `${videoHeight + 20}px`;
+            }
+
+            function preloadScanSound() {
+    const scanSound = new Howl({
+        src: ['./barcode.mp3'],
+        volume: 0.5,
+        autoplay: true,
+        onload: function () {
+            // Esta función se ejecuta cuando el sonido ha sido cargado
+            console.log('Sonido cargado.');
+        },
+        onloaderror: function (id, error) {
+            // Esta función se ejecuta si ocurre un error al cargar el sonido
+            console.error('Error al cargar el sonido:', error);
+        }
+    });
+}
+
+
+            codeReader.listVideoInputDevices()
+                .then((videoInputDevices) => {
+                    const sourceSelect = document.getElementById('sourceSelect');
+                    selectedDeviceId = videoInputDevices[0].deviceId;
+                    if (videoInputDevices.length >= 1) {
+                        videoInputDevices.forEach((element) => {
+                            const sourceOption = document.createElement('option');
+                            sourceOption.text = element.label;
+                            sourceOption.value = element.deviceId;
+                            sourceSelect.appendChild(sourceOption);
+                        });
+
+                        sourceSelect.onchange = () => {
+                            codeReader.reset();
+                            selectedDeviceId = sourceSelect.value;
+                            document.getElementById('result').textContent = '';
+                            resetCanvas();
+                            console.log(`Restarted with camera id ${selectedDeviceId}`);
+                            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+                                if (!(err instanceof ZXing.NotFoundException)) {
+                                    console.error(err);
+                                    document.getElementById('result').textContent = err;
+                                }
+                            });
+                        };
+
+                        const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+                        sourceSelectPanel.style.display = 'block';
+                    }
+
+                    function onScanResult(result, err) {
+                        if (result) {
+                            console.log(result);
+                            document.getElementById('result').textContent = result.text;
+
+                            resetCanvas();
+
+                            preloadScanSound();
+                            // Mostrar el rectángulo alrededor del código de barras detectado
+                            if (result.barcodeResult) {
+                                const { x, y, width, height } = getBoundingBox(result.barcodeResult.resultPoints);
+                                ctx.strokeStyle = '#10B981';
+                                ctx.lineWidth = 2;
+                                ctx.strokeRect(x, y, width, height);
+
+                                // Mostrar el código detectado en la esquina superior derecha del rectángulo
+                                detectedBarcode.textContent = `[${result.text}]`;
+                                detectedBarcode.style.top = `${y}px`;
+                                detectedBarcode.style.left = `${x + width}px`;
+                                detectedBarcode.style.display = 'block';
+
+                                // Actualizar posición del rectángulo barcode-box para seguir al código de barras detectado
+                                barcodeBox.style.top = `${y}px`;
+                                barcodeBox.style.left = `${x}px`;
+                                barcodeBox.style.width = `${width}px`;
+                                barcodeBox.style.height = `${height}px`;
+
+
+                                // Guardar el número escaneado en el array
+                                if (!scannedNumbers[result.text]) {
+                                    scannedNumbers[result.text] = [];
+                                }
+                                scannedNumbers[result.text].push(new Date());
+
+                                // Llamar a la función para mostrar el mensaje de alerta si se verificó más de 3 veces
+                                showAlertIfVerifiedMoreThanThreeTimes(result.text);
+                            }
+                        }
+                        if (err && !(err instanceof ZXing.NotFoundException)) {
+                            console.error(err);
+                            document.getElementById('result').textContent = err;
+                        }
+                    }
+
+                    video.onloadedmetadata = adjustLinePosition;
+                    window.addEventListener('resize', adjustLinePosition);
+
+                    codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+                        if (!(err instanceof ZXing.NotFoundException)) {
+                            console.error(err);
+                            document.getElementById('result').textContent = err;
+                        }
+                    });
+                    console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        });
+
+        // Función para obtener el rectángulo del código de barras a partir de los puntos de resultado
+        function getBoundingBox(resultPoints) {
+            let minX = Number.MAX_VALUE;
+            let minY = Number.MAX_VALUE;
+            let maxX = Number.MIN_VALUE;
+            let maxY = Number.MIN_VALUE;
+
+            resultPoints.forEach(point => {
+                minX = Math.min(minX, point.x);
+                minY = Math.min(minY, point.y);
+                maxX = Math.max(maxX, point.x);
+                maxY = Math.max(maxY, point.y);
             });
 
-            sourceSelect.onchange = () => {
-              codeReader.reset();
-              selectedDeviceId = sourceSelect.value;
-              document.getElementById('result').textContent = '';
-              resetCanvas();
-              console.log(`Restarted with camera id ${selectedDeviceId}`);
-              codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
-                if (!(err instanceof ZXing.NotFoundException)) {
-                  console.error(err);
-                  document.getElementById('result').textContent = err;
-                }
-              });
-            };
+            const x = Math.floor(minX);
+            const y = Math.floor(minY);
+            const width = Math.ceil(maxX - minX);
+            const height = Math.ceil(maxY - minY);
 
-            const sourceSelectPanel = document.getElementById('sourceSelectPanel');
-            sourceSelectPanel.style.display = 'block';
-          }
+            return { x, y, width, height };
+        }
 
-          function onScanResult(result, err) {
-            if (result) {
-              console.log(result);
-              document.getElementById('result').textContent = result.text;
+        function showAlertIfVerifiedMoreThanThreeTimes(barcode) {
+            barcodeVerificationCount[barcode] = (barcodeVerificationCount[barcode] || 0) + 1;
 
-              resetCanvas();
-
-              // Mostrar el rectángulo alrededor del código de barras detectado
-              if (result.barcodeResult) {
-                const { x, y, width, height } = getBoundingBox(result.barcodeResult.resultPoints);
-                ctx.strokeStyle = '#10B981';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, width, height);
-
-                // Mostrar el código detectado en la esquina superior derecha del rectángulo
-                detectedBarcode.textContent = `[${result.text}]`;
-                detectedBarcode.style.top = `${y}px`;
-                detectedBarcode.style.left = `${x + width}px`;
-                detectedBarcode.style.display = 'block';
-              }
+            if (barcodeVerificationCount[barcode] > maxVerificationCount) {
+                Swal.fire({
+                    title: 'Código de barras verificado múltiples veces',
+                    text: `¿Este es el código de barras escaneado?\n\n[${barcode}]`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí',
+                    cancelButtonText: 'No',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Aquí puedes realizar la acción deseada cuando el usuario confirma el código de barras
+                        console.log(`Código de barras confirmado: [${barcode}]`);
+                    } else {
+                        // Si el usuario no confirma, puedes restablecer el contador para este código de barras
+                        barcodeVerificationCount[barcode] = 0;
+                    }
+                });
             }
-            if (err && !(err instanceof ZXing.NotFoundException)) {
-              console.error(err);
-              document.getElementById('result').textContent = err;
-            }
-          }
-
-          video.onloadedmetadata = adjustLinePosition;
-          window.addEventListener('resize', adjustLinePosition);
-
-          codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
-            if (!(err instanceof ZXing.NotFoundException)) {
-              console.error(err);
-              document.getElementById('result').textContent = err;
-            }
-          });
-          console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    });
-
-    // Función para obtener el rectángulo del código de barras a partir de los puntos de resultado
-    function getBoundingBox(resultPoints) {
-      let minX = Number.MAX_VALUE;
-      let minY = Number.MAX_VALUE;
-      let maxX = Number.MIN_VALUE;
-      let maxY = Number.MIN_VALUE;
-
-      resultPoints.forEach(point => {
-        minX = Math.min(minX, point.x);
-        minY = Math.min(minY, point.y);
-        maxX = Math.max(maxX, point.x);
-        maxY = Math.max(maxY, point.y);
-      });
-
-      const x = Math.floor(minX);
-      const y = Math.floor(minY);
-      const width = Math.ceil(maxX - minX);
-      const height = Math.ceil(maxY - minY);
-
-      return { x, y, width, height };
-    }
-
-
-  </script>
+        }
+    </script>
 </body>
 
 </html>
