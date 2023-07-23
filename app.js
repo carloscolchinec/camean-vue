@@ -19,23 +19,31 @@ new Vue({
       cameraView.appendChild(barcodeNumber);
       barcodeNumber.classList.add("barcode-number");
 
-      async function scanBarcode() {
-        if (!scannerActive) return;
-
+      async function setupCamera() {
         try {
-          const codeReader = new ZXing.BrowserBarcodeReader();
-          const constraints = {
+          const stream = await navigator.mediaDevices.getUserMedia({
             video: {
               facingMode: "environment",
               width: { ideal: 1280 },
               height: { ideal: 720 },
             },
-          };
-          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          });
 
           cameraVideo.srcObject = stream;
           await cameraVideo.play();
+          scanBarcode();
+        } catch (err) {
+          console.error("Error al acceder a la cámara:", err);
+          scannerActive = false;
+          alert("No se pudo acceder a la cámara o el acceso fue denegado por el usuario.");
+        }
+      }
 
+      async function scanBarcode() {
+        if (!scannerActive) return;
+
+        try {
+          const codeReader = new ZXing.BrowserBarcodeReader();
           const result = await codeReader.decodeFromVideoElement(
             cameraVideo,
             cameraVideo.width,
@@ -74,10 +82,11 @@ new Vue({
 
       // Verificar si getUserMedia está disponible en el navegador
       if ("mediaDevices" in navigator && "getUserMedia" in navigator.mediaDevices) {
-        // Iniciar el escaneo automáticamente
-        scanBarcode();
+        // Configurar la cámara y escanear automáticamente
+        setupCamera();
       } else {
         console.error("getUserMedia no es compatible en este navegador.");
+        alert("getUserMedia no es compatible en este navegador.");
       }
     },
   },
