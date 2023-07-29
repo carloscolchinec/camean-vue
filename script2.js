@@ -193,3 +193,4 @@ function getBoundingBox(resultPoints) {
 
     return { x, y, width, height };
 }
+});
