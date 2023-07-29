@@ -11,7 +11,6 @@
 //                                             Todos los derechos reservados © COLNET 2023
 
 window.addEventListener("load", function () {
-  let selectedDeviceId;
   const codeReader = new ZXing.BrowserMultiFormatReader();
   const canvas = document.getElementById("scanner-overlay");
   const ctx = canvas.getContext("2d");
@@ -30,7 +29,6 @@ window.addEventListener("load", function () {
 
   function resetCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     barcodeBox.style.display = "none";
   }
 
@@ -47,11 +45,9 @@ window.addEventListener("load", function () {
       volume: 0.5,
       autoplay: true,
       onload: function () {
-        // Esta función se ejecuta cuando el sonido ha sido cargado
         console.log("Sonido cargado.");
       },
       onloaderror: function (id, error) {
-        // Esta función se ejecuta si ocurre un error al cargar el sonido
         console.error("Error al cargar el sonido:", error);
       },
     });
@@ -70,18 +66,14 @@ window.addEventListener("load", function () {
       }
 
       if (videoInputDevices.length >= 1) {
-        if (isMobileDevice()) {
-          const rearCameraDevices = videoInputDevices.filter(
-            (device) =>
-              device.label.includes("back") || device.label.includes("trasera")
-          );
-          selectedDeviceId =
-            rearCameraDevices.length > 0
-              ? rearCameraDevices[0].deviceId
-              : videoInputDevices[0].deviceId;
-        } else {
-          selectedDeviceId = videoInputDevices[0].deviceId;
-        }
+        const rearCameraDevices = videoInputDevices.filter(
+          (device) =>
+            device.label.includes("back") || device.label.includes("trasera")
+        );
+        selectedDeviceId =
+          rearCameraDevices.length > 0
+            ? rearCameraDevices[0].deviceId
+            : videoInputDevices[0].deviceId;
 
         videoInputDevices.forEach((element) => {
           const sourceOption = document.createElement("option");
@@ -113,9 +105,7 @@ window.addEventListener("load", function () {
         sourceSelectPanel.style.display = "block";
 
         setTimeout(() => {
-          const video = document.getElementById("video");
           video.style.border = "1px solid #fe8e14";
-
           const animatedLine = document.querySelector(".animated-line");
           animatedLine.style.backgroundColor = "#fe8e14";
         }, 700);
@@ -165,7 +155,6 @@ window.addEventListener("load", function () {
     });
 });
 
-// Función para obtener el rectángulo del código de barras a partir de los puntos de resultado
 function getBoundingBox(resultPoints) {
   let minX = Number.MAX_VALUE;
   let minY = Number.MAX_VALUE;
@@ -186,3 +175,4 @@ function getBoundingBox(resultPoints) {
 
   return { x, y, width, height };
 }
+
