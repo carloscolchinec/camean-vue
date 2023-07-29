@@ -53,44 +53,92 @@ window.addEventListener('load', function () {
 
     codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
-            const sourceSelect = document.getElementById('sourceSelect');
+           const sourceSelect = document.getElementById('sourceSelect');
 
-let camera1Device = videoInputDevices.find(device => device.label.toLowerCase().includes('1'));
-let camera0Device = videoInputDevices.find(device => device.label.toLowerCase().includes('0'));
+function setCameraOptions(cameraDevices) {
+    let rearCameraDevice = null;
+    let frontCameraDevice = null;
 
-// Detectar si el dispositivo es Android o iOS
-const isAndroid = /Android/i.test(navigator.userAgent);
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-// Priorizar la cámara trasera si es un dispositivo móvil (Android o iOS)
-selectedDeviceId = isAndroid || isIOS
-    ? (camera1Device ? camera1Device.deviceId : (camera0Device ? camera0Device.deviceId : videoInputDevices[0].deviceId))
-    : videoInputDevices[0].deviceId;
-
-if (videoInputDevices.length >= 1) {
-    videoInputDevices.forEach((element) => {
-        const sourceOption = document.createElement('option');
-        sourceOption.text = element.label;
-        sourceOption.value = element.deviceId;
-        sourceSelect.appendChild(sourceOption);
+    cameraDevices.forEach(device => {
+        const label = device.label.toLowerCase();
+        if (label.includes('rear') || label.includes('trasera')) {
+            rearCameraDevice = device;
+        } else if (label.includes('front') || label.includes('frontal')) {
+            frontCameraDevice = device;
+        }
     });
 
-    sourceSelect.value = selectedDeviceId;
+    if (rearCameraDevice) {
+        // Si se encontró la cámara trasera, la etiquetamos como "Parte Trasera"
+        const rearSourceOption = document.createElement('option');
+        rearSourceOption.text = 'Parte Trasera';
+        rearSourceOption.value = rearCameraDevice.deviceId;
+        sourceSelect.appendChild(rearSourceOption);
+    }
 
-    sourceSelect.onchange = () => {
-        codeReader.reset();
-        selectedDeviceId = sourceSelect.value;
-        resetCanvas();
-        console.log(`Restarted with camera id ${selectedDeviceId}`);
-        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
-            if (!(err instanceof ZXing.NotFoundException)) {
-                console.error(err);
+    if (frontCameraDevice) {
+        // Si se encontró la cámara frontal, la etiquetamos como "Parte Frontal"
+        const frontSourceOption = document.createElement('option');
+        frontSourceOption.text = 'Parte Frontal';
+        frontSourceOption.value = frontCameraDevice.deviceId;
+        sourceSelect.appendChild(frontSourceOption);
+    }
+
+    if (!rearCameraDevice && !frontCameraDevice) {
+        // Si no se encontraron cámaras traseras ni frontales, etiquetamos la primera cámara disponible como "Parte Trasera"
+        const defaultSourceOption = document.createElement('option');
+        defaultSourceOption.text = 'Parte Trasera';
+        defaultSourceOption.value = cameraDevices[0].deviceId;
+        sourceSelect.appendChild(defaultSourceOption);
+    }
+}
+
+function initializeCamera() {
+    codeReader.listVideoInputDevices()
+        .then((videoInputDevices) => {
+            if (videoInputDevices.length > 0) {
+                setCameraOptions(videoInputDevices);
+                sourceSelect.value = sourceSelect.options[0].value;
+                selectedDeviceId = sourceSelect.value;
+
+                sourceSelect.onchange = () => {
+                    codeReader.reset();
+                    selectedDeviceId = sourceSelect.value;
+                    resetCanvas();
+                    console.log(`Restarted with camera id ${selectedDeviceId}`);
+                    codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+                        if (!(err instanceof ZXing.NotFoundException)) {
+                            console.error(err);
+                        }
+                    });
+                };
+
+                const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+                sourceSelectPanel.style.display = 'block';
+
+                // Resto del código para inicializar la cámara...
+            } else {
+                console.error('No se encontraron dispositivos de video.');
             }
+        })
+        .catch((err) => {
+            console.error(err);
         });
-    };
+}
 
-    const sourceSelectPanel = document.getElementById('sourceSelectPanel');
-    sourceSelectPanel.style.display = 'block';
+// Verificar si el dispositivo es un celular (Android o iOS) mediante el userAgent
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+if (isMobileDevice) {
+    // Si es un dispositivo móvil, primero inicializamos las cámaras y luego seleccionamos la cámara trasera (si está disponible)
+    initializeCamera();
+} else {
+    // Si no es un dispositivo móvil, simplemente inicializamos las cámaras con prioridad en la primera
+    const defaultOption = document.createElement('option');
+    defaultOption.text = 'Parte Trasera';
+    defaultOption.value = 'default';
+    sourceSelect.appendChild(defaultOption);
+    initializeCamera();
 }
 
 
