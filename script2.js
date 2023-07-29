@@ -1,4 +1,4 @@
-                                                                                                                                window.addEventListener('load', function () {
+window.addEventListener('load', function () {
     let selectedDeviceId;
     const codeReader = new ZXing.BrowserMultiFormatReader();
     const canvas = document.getElementById('scanner-overlay');
@@ -55,39 +55,36 @@
         .then((videoInputDevices) => {
             const sourceSelect = document.getElementById('sourceSelect');
 
-            // Buscar la cámara trasera en la lista de dispositivos de video
-            const rearCameraDevice = videoInputDevices.find(device => {
-                return device.label.toLowerCase().includes('rear') || device.label.toLowerCase().includes('trasera');
-            });
+let camera1Device = videoInputDevices.find(device => device.label.toLowerCase().includes('1'));
+let camera0Device = videoInputDevices.find(device => device.label.toLowerCase().includes('0'));
 
-            // Seleccionar la cámara trasera si está disponible, de lo contrario, seleccionar la primera cámara disponible
-            selectedDeviceId = rearCameraDevice ? rearCameraDevice.deviceId : videoInputDevices[0].deviceId;
+// Seleccionar la cámara 1 si está disponible, de lo contrario, seleccionar la cámara 0
+selectedDeviceId = camera1Device ? camera1Device.deviceId : (camera0Device ? camera0Device.deviceId : videoInputDevices[0].deviceId);
 
-            videoInputDevices.forEach((element) => {
-                const sourceOption = document.createElement('option');
-                sourceOption.text = element.label;
-                sourceOption.value = element.deviceId;
-                sourceSelect.appendChild(sourceOption);
-            });
+if (videoInputDevices.length >= 1) {
+    videoInputDevices.forEach((element) => {
+        const sourceOption = document.createElement('option');
+        sourceOption.text = element.label;
+        sourceOption.value = element.deviceId;
+        sourceSelect.appendChild(sourceOption);
+    });
 
-            // Agregar la opción seleccionada a la lista
-            sourceSelect.value = selectedDeviceId;
+    sourceSelect.onchange = () => {
+        codeReader.reset();
+        selectedDeviceId = sourceSelect.value;
+        resetCanvas();
+        console.log(`Restarted with camera id ${selectedDeviceId}`);
+        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+            if (!(err instanceof ZXing.NotFoundException)) {
+                console.error(err);
+            }
+        });
+    };
 
-            sourceSelect.onchange = () => {
-                codeReader.reset();
-                selectedDeviceId = sourceSelect.value;
-                resetCanvas();
-                console.log(`Restarted with camera id ${selectedDeviceId}`);
-                codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
-                    if (!(err instanceof ZXing.NotFoundException)) {
-                        console.error(err);
-                    }
-                });
-            };
+    const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+    sourceSelectPanel.style.display = 'block';
+}
 
-            const sourceSelectPanel = document.getElementById('sourceSelectPanel');
-            sourceSelectPanel.style.display = 'block';
-        
 
             function onScanResult(result, err) {
                 if (result) {
