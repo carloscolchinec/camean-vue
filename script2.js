@@ -84,6 +84,7 @@
                     resetCanvas();
                     console.log(`Restarted with camera id ${selectedDeviceId}`);
                     codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+                        console.log(selectedDeviceId)
                         if (!(err instanceof ZXing.NotFoundException)) {
                             console.error(err);
                         }
