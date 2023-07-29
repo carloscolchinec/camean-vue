@@ -60,13 +60,8 @@ window.addEventListener('load', function () {
                 return device.label.toLowerCase().includes('rear') || device.label.toLowerCase().includes('trasera');
             });
 
-            if (rearCameraDevice) {
-                // Si se encontró la cámara trasera, seleccionarla
-                selectedDeviceId = rearCameraDevice.deviceId;
-            } else {
-                // Si no se encontró la cámara trasera, seleccionar el primer dispositivo disponible
-                selectedDeviceId = videoInputDevices[1].deviceId;
-            }
+            // Si se encontró la cámara trasera, seleccionarla; de lo contrario, seleccionar la primera cámara disponible
+            selectedDeviceId = rearCameraDevice ? rearCameraDevice.deviceId : videoInputDevices[0].deviceId;
 
             if (videoInputDevices.length >= 1) {
                 videoInputDevices.forEach((element) => {
@@ -76,6 +71,7 @@ window.addEventListener('load', function () {
                     sourceSelect.appendChild(sourceOption);
                 });
 
+                // Agregar la opción seleccionada a la lista
                 sourceSelect.value = selectedDeviceId;
 
                 sourceSelect.onchange = () => {
@@ -84,7 +80,6 @@ window.addEventListener('load', function () {
                     resetCanvas();
                     console.log(`Restarted with camera id ${selectedDeviceId}`);
                     codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
-                        alert(selectedDeviceId)
                         if (!(err instanceof ZXing.NotFoundException)) {
                             console.error(err);
                         }
@@ -95,6 +90,7 @@ window.addEventListener('load', function () {
                 sourceSelectPanel.style.display = 'block';
             }
 
+            
             function onScanResult(result, err) {
                 if (result) {
                     resetCanvas();
