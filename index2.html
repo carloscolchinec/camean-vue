@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="ZXing for JS">
+
+    <title>COLNETCAM | CODEBAR</title>
+
+    <!-- Stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Text:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body class="bg-blue-50">
+    <main class="container">
+        <div class="card">
+            <h1 class="title">COLNETCAM | CODEBAR</h1>
+            <div class="video-container">
+                <video id="video" class="video"></video>
+                <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
+                <div class="animated-line"></div>
+                <div class="detected-barcode" id="detectedBarcode"></div>
+                <div class="barcode-box"></div> <!-- Agregamos el div para el rectángulo -->
+            </div>
+
+            <div id="sourceSelectPanel" class="mt-4">
+                <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
+                <select id="sourceSelect"
+                    class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
+                </select>
+            </div>
+
+            <div class="badge-container mt-2 text-center" id="badgeContainer"></div>
+
+        </div>
+
+    </main>
+
+    <!-- Agregamos la etiqueta de audio para reproducir el sonido -->
+    <audio id="scanSound" src="./barcode.mp3"></audio>
+
+
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.7/dist/sweetalert2.all.min.js"></script> 
+    <script src="./script.js"></script>
+</body>
+
+</html>
