@@ -64,64 +64,60 @@ window.addEventListener('load', function () {
         });
     }
 
-  function isAndroidSamsung() {
-  return /Android/i.test(navigator.userAgent) && /Samsung/i.test(navigator.userAgent);
-}
+ function isAndroid() {
+                return /Android/i.test(navigator.userAgent) && /Samsung|Huawei|Xiaomi|Redmi/i.test(navigator.userAgent);
+            }
 
-// Función para detectar si el sistema operativo es iOS (iPhone o iPad)
-function isiOS() {
-  return /(iPhone|iPad|iPod)/i.test(navigator.userAgent);
-}
+            // Función para detectar si el sistema operativo es iOS (iPhone)
+            function isiOS() {
+                return /(iPhone|iPod)/i.test(navigator.userAgent);
+            }
 
-// Función para seleccionar la cámara correspondiente según el sistema operativo
-async function selectCameraByOS(videoInputDevices) {
-  if (isAndroidSamsung()) {
-    // Si es Android (Samsung), selecciona la cámara trasera (deviceId = 1)
-    const rearCamera = videoInputDevices.find(device => device.deviceId === '1');
-    if (rearCamera) {
-      return rearCamera.deviceId;
-    }
-  } else if (isiOS()) {
-    // Si es iOS, selecciona la cámara trasera (deviceId = 1)
-    const rearCamera = videoInputDevices.find(device => device.deviceId === '1');
-    if (rearCamera) {
-      return rearCamera.deviceId;
-    }
-  }
-  // Si no es Android (Samsung) ni iOS, selecciona la cámara 0 (predeterminada)
-  return videoInputDevices[0].deviceId;
-}
+            // Función para seleccionar la cámara correspondiente según el sistema operativo
+            async function selectCameraByOS(videoInputDevices) {
+                if (isAndroid() || isiOS()) {
+                    // Si es Android o iOS, selecciona la cámara trasera (deviceId = '1')
+                    const rearCamera = videoInputDevices.find(device => device.deviceId === '1');
+                    if (rearCamera) {
+                        return rearCamera.deviceId;
+                    }
+                }
+                // Si no es Android ni iOS, selecciona la cámara delantera (deviceId = '0')
+                return videoInputDevices[0].deviceId;
+            }
 
 
    codeReader.listVideoInputDevices()
   .then((videoInputDevices) => {
-    const sourceSelect = document.getElementById('sourceSelect');
-    // Selección de la cámara según el sistema operativo
-    selectedDeviceId = selectCameraByOS(videoInputDevices);
+   codeReader.listVideoInputDevices()
+                .then((videoInputDevices) => {
+                    const sourceSelect = document.getElementById('sourceSelect');
+                    // Selección de la cámara según el sistema operativo
+                    selectedDeviceId = selectCameraByOS(videoInputDevices);
 
-    if (videoInputDevices.length >= 1) {
-      videoInputDevices.forEach((element) => {
-        const sourceOption = document.createElement('option');
-        sourceOption.text = element.label;
-        sourceOption.value = element.deviceId;
-        sourceSelect.appendChild(sourceOption);
-      });
+                    if (videoInputDevices.length >= 1) {
+                        videoInputDevices.forEach((element) => {
+                            const sourceOption = document.createElement('option');
+                            sourceOption.text = element.label;
+                            sourceOption.value = element.deviceId;
+                            sourceSelect.appendChild(sourceOption);
+                        });
 
-      sourceSelect.onchange = () => {
-        codeReader.reset();
-        selectedDeviceId = sourceSelect.value;
-        resetCanvas();
-        console.log(`Restarted with camera id ${selectedDeviceId}`);
-        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
-          if (!(err instanceof ZXing.NotFoundException)) {
-            console.error(err);
-          }
-        });
-      };
+                        sourceSelect.onchange = () => {
+                            codeReader.reset();
+                            selectedDeviceId = sourceSelect.value;
+                            resetCanvas();
+                            console.log(`Restarted with camera id ${selectedDeviceId}`);
+                            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+                                if (!(err instanceof ZXing.NotFoundException)) {
+                                    console.error(err);
+                                }
+                            });
+                        };
 
-      const sourceSelectPanel = document.getElementById('sourceSelectPanel');
-      sourceSelectPanel.style.display = 'block';
-    }
+                        const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+                        sourceSelectPanel.style.display = 'block';
+                    }
             function onScanResult(result, err) {
                 if (result) {
                     resetCanvas();
