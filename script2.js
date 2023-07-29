@@ -65,7 +65,7 @@
                 selectedDeviceId = rearCameraDevice.deviceId;
             } else {
                 // Si no se encontró la cámara trasera, seleccionar el primer dispositivo disponible
-                selectedDeviceId = videoInputDevices[0].deviceId;
+                selectedDeviceId = videoInputDevices[1].deviceId;
             }
 
             if (videoInputDevices.length >= 1) {
