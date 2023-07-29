@@ -58,8 +58,14 @@ window.addEventListener('load', function () {
 let camera1Device = videoInputDevices.find(device => device.label.toLowerCase().includes('1'));
 let camera0Device = videoInputDevices.find(device => device.label.toLowerCase().includes('0'));
 
-// Seleccionar la cámara 1 si está disponible, de lo contrario, seleccionar la cámara 0
-selectedDeviceId = camera1Device ? camera1Device.deviceId : (camera0Device ? camera0Device.deviceId : videoInputDevices[0].deviceId);
+// Detectar si el dispositivo es Android o iOS
+const isAndroid = /Android/i.test(navigator.userAgent);
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+// Priorizar la cámara trasera si es un dispositivo móvil (Android o iOS)
+selectedDeviceId = isAndroid || isIOS
+    ? (camera1Device ? camera1Device.deviceId : (camera0Device ? camera0Device.deviceId : videoInputDevices[0].deviceId))
+    : videoInputDevices[0].deviceId;
 
 if (videoInputDevices.length >= 1) {
     videoInputDevices.forEach((element) => {
@@ -68,6 +74,8 @@ if (videoInputDevices.length >= 1) {
         sourceOption.value = element.deviceId;
         sourceSelect.appendChild(sourceOption);
     });
+
+    sourceSelect.value = selectedDeviceId;
 
     sourceSelect.onchange = () => {
         codeReader.reset();
