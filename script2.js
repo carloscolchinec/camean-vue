@@ -108,14 +108,6 @@ selectedDeviceId = videoInputDevices[1]?.deviceId || videoInputDevices[0]?.devic
             ctx.lineWidth = 2;
             ctx.strokeRect(x, y, width, height);
 
-            // Mostrar el código detectado en la esquina superior derecha del rectángulo
-            detectedBarcode.textContent = `[${result.text}]`;
-            detectedBarcode.style.top = `${y}px`;
-            detectedBarcode.style.left = `${x + width}px`;
-            detectedBarcode.style.display = "block";
-
-            // Mostrar el rectángulo que encierra el código de barras
-            adjustBarcodeBox(x, y, width, height);
 
             // Guardar el número escaneado en el array
             if (!scannedNumbers[result.text]) {
