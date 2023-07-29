@@ -1,4 +1,4 @@
-window.addEventListener('load', function () {
+                                                                                                                                window.addEventListener('load', function () {
     let selectedDeviceId;
     const codeReader = new ZXing.BrowserMultiFormatReader();
     const canvas = document.getElementById('scanner-overlay');
@@ -55,42 +55,46 @@ window.addEventListener('load', function () {
         .then((videoInputDevices) => {
             const sourceSelect = document.getElementById('sourceSelect');
 
-            // Buscar la cámara trasera en la lista de dispositivos de video
-            const rearCameraDevice = videoInputDevices.find(device => {
-                return device.label.toLowerCase().includes('rear') || device.label.toLowerCase().includes('trasera');
-            });
-
-            // Si se encontró la cámara trasera, seleccionarla; de lo contrario, seleccionar la primera cámara disponible
-            selectedDeviceId = rearCameraDevice ? rearCameraDevice.deviceId : videoInputDevices[0].deviceId;
-
             if (videoInputDevices.length >= 1) {
-                videoInputDevices.forEach((element) => {
-                    const sourceOption = document.createElement('option');
-                    sourceOption.text = element.label;
-                    sourceOption.value = element.deviceId;
-                    sourceSelect.appendChild(sourceOption);
+                // Seleccionar la cámara trasera si está disponible en dispositivos móviles
+                const rearCameraDevice = videoInputDevices.find(device => {
+                    return device.label.toLowerCase().includes('rear') || device.label.toLowerCase().includes('trasera');
                 });
 
-                // Agregar la opción seleccionada a la lista
-                sourceSelect.value = selectedDeviceId;
-
-                sourceSelect.onchange = () => {
-                    codeReader.reset();
-                    selectedDeviceId = sourceSelect.value;
-                    resetCanvas();
-                    console.log(`Restarted with camera id ${selectedDeviceId}`);
-                    codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
-                        if (!(err instanceof ZXing.NotFoundException)) {
-                            console.error(err);
-                        }
-                    });
-                };
-
-                const sourceSelectPanel = document.getElementById('sourceSelectPanel');
-                sourceSelectPanel.style.display = 'block';
+                if (rearCameraDevice) {
+                    selectedDeviceId = rearCameraDevice.deviceId;
+                } else {
+                    // Si no se encontró la cámara trasera, seleccionar la primera cámara disponible (cámara frontal)
+                    selectedDeviceId = videoInputDevices[0].deviceId;
+                }
             }
 
-            
+            videoInputDevices.forEach((element) => {
+                const sourceOption = document.createElement('option');
+                sourceOption.text = element.label;
+                sourceOption.value = element.deviceId;
+                sourceSelect.appendChild(sourceOption);
+            });
+
+            // Agregar la opción seleccionada a la lista
+            sourceSelect.value = selectedDeviceId;
+
+            sourceSelect.onchange = () => {
+                codeReader.reset();
+                selectedDeviceId = sourceSelect.value;
+                resetCanvas();
+                console.log(`Restarted with camera id ${selectedDeviceId}`);
+                codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
+                    if (!(err instanceof ZXing.NotFoundException)) {
+                        console.error(err);
+                    }
+                });
+            };
+
+            const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+            sourceSelectPanel.style.display = 'block';
+        
+
             function onScanResult(result, err) {
                 if (result) {
                     resetCanvas();
