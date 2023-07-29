@@ -53,7 +53,7 @@ window.addEventListener("load", function () {
     .listVideoInputDevices()
     .then((videoInputDevices) => {
       const sourceSelect = document.getElementById("sourceSelect");
-      selectedDeviceId = videoInputDevices[0].deviceId;
+selectedDeviceId = videoInputDevices[1]?.deviceId || videoInputDevices[0]?.deviceId;
       if (videoInputDevices.length >= 1) {
         videoInputDevices.forEach((element) => {
           const sourceOption = document.createElement("option");
