@@ -11,76 +11,83 @@
 //                                             Todos los derechos reservados © COLNET 2023
 
 window.addEventListener("load", function () {
-  const codeReader = new ZXing.BrowserMultiFormatReader();
-  const canvas = document.getElementById("scanner-overlay");
-  const ctx = canvas.getContext("2d");
-  const video = document.getElementById("video");
-  const barcodeBox = document.querySelector(".barcode-box");
-  const badgeContainer = document.getElementById("badgeContainer");
-  const scanSound = document.getElementById("scanSound");
+    let selectedDeviceId;
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+    const canvas = document.getElementById("scanner-overlay");
+    const ctx = canvas.getContext("2d");
+    const video = document.getElementById("video");
+    const barcodeBox = document.querySelector(".barcode-box");
+    const badgeContainer = document.getElementById("badgeContainer");
+    const scanSound = document.getElementById("scanSound");
 
-  function adjustBarcodeBox(x, y, width, height) {
-    barcodeBox.style.top = `${y}px`;
-    barcodeBox.style.left = `${x}px`;
-    barcodeBox.style.width = `${width}px`;
-    barcodeBox.style.height = `${height}px`;
-    barcodeBox.style.display = "block";
-  }
+    function adjustBarcodeBox(x, y, width, height) {
+        barcodeBox.style.top = `${y}px`;
+        barcodeBox.style.left = `${x}px`;
+        barcodeBox.style.width = `${width}px`;
+        barcodeBox.style.height = `${height}px`;
+        barcodeBox.style.display = "block";
+    }
 
-  function resetCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    barcodeBox.style.display = "none";
-  }
+    function resetCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  function adjustLinePosition() {
-    const videoHeight = video.clientHeight;
-    const animatedLine = document.querySelector(".animated-line");
-    animatedLine.style.top = `${videoHeight / 2}px`;
-    sourceSelectPanel.style.marginTop = `${videoHeight + 20}px`;
-  }
+        barcodeBox.style.display = "none";
+    }
 
-  function preloadScanSound() {
-    const scanSound = new Howl({
-      src: ["./barcode.mp3"],
-      volume: 0.5,
-      autoplay: true,
-      onload: function () {
-        console.log("Sonido cargado.");
-      },
-      onloaderror: function (id, error) {
-        console.error("Error al cargar el sonido:", error);
-      },
-    });
-  }
+    function adjustLinePosition() {
+        const videoHeight = video.clientHeight;
+        const animatedLine = document.querySelector(".animated-line");
+        animatedLine.style.top = `${videoHeight / 2}px`;
+        sourceSelectPanel.style.marginTop = `${videoHeight + 20}px`;
+    }
 
-  codeReader
+    function preloadScanSound() {
+        const scanSound = new Howl({
+            src: ["./barcode.mp3"],
+            volume: 0.5,
+            autoplay: true,
+            onload: function () {
+                // Esta función se ejecuta cuando el sonido ha sido cargado
+                console.log("Sonido cargado.");
+            },
+            onloaderror: function (id, error) {
+                // Esta función se ejecuta si ocurre un error al cargar el sonido
+                console.error("Error al cargar el sonido:", error);
+            },
+        });
+    }
+
+    codeReader
     .listVideoInputDevices()
     .then((videoInputDevices) => {
       const sourceSelect = document.getElementById("sourceSelect");
-      let selectedDeviceId;
-
-      function isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        );
-      }
-
+      selectedDeviceId = videoInputDevices[0].deviceId;
       if (videoInputDevices.length >= 1) {
-        const rearCameraDevices = videoInputDevices.filter(
-          (device) =>
-            device.label.includes("back") || device.label.includes("trasera")
-        );
-        selectedDeviceId =
-          rearCameraDevices.length > 0
-            ? rearCameraDevices[0].deviceId
-            : videoInputDevices[0].deviceId;
-
+        // Show all cameras in the sourceSelect dropdown
         videoInputDevices.forEach((element) => {
           const sourceOption = document.createElement("option");
           sourceOption.text = element.label;
           sourceOption.value = element.deviceId;
           sourceSelect.appendChild(sourceOption);
         });
+
+        // If it's a mobile device, try to select the rear camera
+        function isMobileDevice() {
+          return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+          );
+        }
+
+        if (isMobileDevice()) {
+          const rearCameraDevices = videoInputDevices.filter(
+            (device) =>
+              device.label.includes("back") || device.label.includes("trasera")
+          );
+          selectedDeviceId =
+            rearCameraDevices.length > 0
+              ? rearCameraDevices[0].deviceId
+              : videoInputDevices[0].deviceId;
+        }
 
         sourceSelect.value = selectedDeviceId;
 
@@ -105,7 +112,9 @@ window.addEventListener("load", function () {
         sourceSelectPanel.style.display = "block";
 
         setTimeout(() => {
+          const video = document.getElementById("video");
           video.style.border = "1px solid #fe8e14";
+
           const animatedLine = document.querySelector(".animated-line");
           animatedLine.style.backgroundColor = "#fe8e14";
         }, 700);
@@ -155,24 +164,24 @@ window.addEventListener("load", function () {
     });
 });
 
+// Función para obtener el rectángulo del código de barras a partir de los puntos de resultado
 function getBoundingBox(resultPoints) {
-  let minX = Number.MAX_VALUE;
-  let minY = Number.MAX_VALUE;
-  let maxX = Number.MIN_VALUE;
-  let maxY = Number.MIN_VALUE;
+    let minX = Number.MAX_VALUE;
+    let minY = Number.MAX_VALUE;
+    let maxX = Number.MIN_VALUE;
+    let maxY = Number.MIN_VALUE;
 
-  resultPoints.forEach((point) => {
-    minX = Math.min(minX, point.x);
-    minY = Math.min(minY, point.y);
-    maxX = Math.max(maxX, point.x);
-    maxY = Math.max(maxY, point.y);
-  });
+    resultPoints.forEach((point) => {
+        minX = Math.min(minX, point.x);
+        minY = Math.min(minY, point.y);
+        maxX = Math.max(maxX, point.x);
+        maxY = Math.max(maxY, point.y);
+    });
 
-  const x = Math.floor(minX);
-  const y = Math.floor(minY);
-  const width = Math.ceil(maxX - minX);
-  const height = Math.ceil(maxY - minY);
+    const x = Math.floor(minX);
+    const y = Math.floor(minY);
+    const width = Math.ceil(maxX - minX);
+    const height = Math.ceil(maxY - minY);
 
-  return { x, y, width, height };
+    return { x, y, width, height };
 }
-
