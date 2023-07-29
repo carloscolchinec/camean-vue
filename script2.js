@@ -1,3 +1,17 @@
+
+// ______   ______  __       __    __ ________ ________         ______   ______  ________ ________ __       __  ______  _______  ________ 
+// /      \ /      \|  \     |  \  |  |        |        \       /      \ /      \|        |        |  \  _  |  \/      \|       \|        \
+// |  $$$$$$|  $$$$$$| $$     | $$\ | $| $$$$$$$$\$$$$$$$$      |  $$$$$$|  $$$$$$| $$$$$$$$\$$$$$$$| $$ / \ | $|  $$$$$$| $$$$$$$| $$$$$$$$
+// | $$   \$| $$  | $| $$     | $$$\| $| $$__      | $$         | $$___\$| $$  | $| $$__      | $$  | $$/  $\| $| $$__| $| $$__| $| $$__    
+// | $$     | $$  | $| $$     | $$$$\ $| $$  \     | $$          \$$    \| $$  | $| $$  \     | $$  | $$  $$$\ $| $$    $| $$    $| $$  \   
+// | $$   __| $$  | $| $$     | $$\$$ $| $$$$$     | $$          _\$$$$$$| $$  | $| $$$$$     | $$  | $$ $$\$$\$| $$$$$$$| $$$$$$$| $$$$$   
+// | $$__/  | $$__/ $| $$_____| $$ \$$$| $$_____   | $$         |  \__| $| $$__/ $| $$        | $$  | $$$$  \$$$| $$  | $| $$  | $| $$_____ 
+// \$$    $$\$$    $| $$     | $$  \$$| $$     \  | $$          \$$    $$\$$    $| $$        | $$  | $$$    \$$| $$  | $| $$  | $| $$     \
+//  \$$$$$$  \$$$$$$ \$$$$$$$$\$$   \$$\$$$$$$$$   \$$           \$$$$$$  \$$$$$$ \$$         \$$   \$$      \$$\$$   \$$\$$   \$$\$$$$$$$$                                                                                           
+
+//                                             Todos los derechos reservados © COLNET 2023                                                                                                            
+                                                                                                                                        
+
 window.addEventListener('load', function () {
     let selectedDeviceId;
     const codeReader = new ZXing.BrowserMultiFormatReader();
@@ -53,53 +67,15 @@ window.addEventListener('load', function () {
 
     codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
-          const sourceSelect = document.getElementById('sourceSelect');
-
-function setCameraOptions(cameraDevices) {
-    let rearCameraDevice = null;
-    let frontCameraDevice = null;
-
-    cameraDevices.forEach(device => {
-        const label = device.label.toLowerCase();
-        if (label.includes('rear') || label.includes('trasera')) {
-            frontCameraDevice = device;
-        } else if (label.includes('front') || label.includes('frontal')) {
-            rearCameraDevice = device;
-        }
-    });
-
-    if (frontCameraDevice) {
-        // Si se encontró la cámara frontal, la etiquetamos como "Parte Frontal"
-        const frontSourceOption = document.createElement('option');
-        frontSourceOption.text = 'Parte Frontal';
-        frontSourceOption.value = frontCameraDevice.deviceId;
-        sourceSelect.appendChild(frontSourceOption);
-    }
-
-    if (rearCameraDevice) {
-        // Si se encontró la cámara trasera, la etiquetamos como "Parte Trasera"
-        const rearSourceOption = document.createElement('option');
-        rearSourceOption.text = 'Parte Trasera';
-        rearSourceOption.value = rearCameraDevice.deviceId;
-        sourceSelect.appendChild(rearSourceOption);
-    }
-
-    if (!frontCameraDevice && !rearCameraDevice) {
-        // Si no se encontraron cámaras frontales ni traseras, etiquetamos la primera cámara disponible como "Parte Trasera"
-        const defaultSourceOption = document.createElement('option');
-        defaultSourceOption.text = 'Parte Trasera';
-        defaultSourceOption.value = cameraDevices[0].deviceId;
-        sourceSelect.appendChild(defaultSourceOption);
-    }
-}
-
-function initializeCamera() {
-    codeReader.listVideoInputDevices()
-        .then((videoInputDevices) => {
-            if (videoInputDevices.length > 0) {
-                setCameraOptions(videoInputDevices);
-                sourceSelect.value = sourceSelect.options[0].value;
-                selectedDeviceId = sourceSelect.value;
+            const sourceSelect = document.getElementById('sourceSelect');
+            selectedDeviceId = videoInputDevices[0].deviceId;
+            if (videoInputDevices.length >= 1) {
+                videoInputDevices.forEach((element) => {
+                    const sourceOption = document.createElement('option');
+                    sourceOption.text = element.label;
+                    sourceOption.value = element.deviceId;
+                    sourceSelect.appendChild(sourceOption);
+                });
 
                 sourceSelect.onchange = () => {
                     codeReader.reset();
@@ -115,31 +91,7 @@ function initializeCamera() {
 
                 const sourceSelectPanel = document.getElementById('sourceSelectPanel');
                 sourceSelectPanel.style.display = 'block';
-
-                // Resto del código para inicializar la cámara...
-            } else {
-                console.error('No se encontraron dispositivos de video.');
             }
-        })
-        .catch((err) => {
-            console.error(err);
-        });
-}
-
-// Verificar si el dispositivo es un celular (Android o iOS) mediante el userAgent
-const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-if (isMobileDevice) {
-    // Si es un dispositivo móvil, primero inicializamos las cámaras y luego seleccionamos la cámara trasera (si está disponible)
-    initializeCamera();
-} else {
-    // Si no es un dispositivo móvil, simplemente inicializamos las cámaras con prioridad en la primera
-    const defaultOption = document.createElement('option');
-    defaultOption.text = 'Parte Trasera';
-    defaultOption.value = 'default';
-    sourceSelect.appendChild(defaultOption);
-    initializeCamera();
-}
 
             function onScanResult(result, err) {
                 if (result) {
