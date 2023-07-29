@@ -1,4 +1,4 @@
-                                                                                                                                window.addEventListener('load', function () {
+window.addEventListener('load', function () {
     let selectedDeviceId;
     const codeReader = new ZXing.BrowserMultiFormatReader();
     const canvas = document.getElementById('scanner-overlay');
