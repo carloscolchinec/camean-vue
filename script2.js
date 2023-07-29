@@ -53,7 +53,7 @@ window.addEventListener('load', function () {
 
     codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
-           const sourceSelect = document.getElementById('sourceSelect');
+          const sourceSelect = document.getElementById('sourceSelect');
 
 function setCameraOptions(cameraDevices) {
     let rearCameraDevice = null;
@@ -62,19 +62,11 @@ function setCameraOptions(cameraDevices) {
     cameraDevices.forEach(device => {
         const label = device.label.toLowerCase();
         if (label.includes('rear') || label.includes('trasera')) {
-            rearCameraDevice = device;
-        } else if (label.includes('front') || label.includes('frontal')) {
             frontCameraDevice = device;
+        } else if (label.includes('front') || label.includes('frontal')) {
+            rearCameraDevice = device;
         }
     });
-
-    if (rearCameraDevice) {
-        // Si se encontró la cámara trasera, la etiquetamos como "Parte Trasera"
-        const rearSourceOption = document.createElement('option');
-        rearSourceOption.text = 'Parte Trasera';
-        rearSourceOption.value = rearCameraDevice.deviceId;
-        sourceSelect.appendChild(rearSourceOption);
-    }
 
     if (frontCameraDevice) {
         // Si se encontró la cámara frontal, la etiquetamos como "Parte Frontal"
@@ -84,8 +76,16 @@ function setCameraOptions(cameraDevices) {
         sourceSelect.appendChild(frontSourceOption);
     }
 
-    if (!rearCameraDevice && !frontCameraDevice) {
-        // Si no se encontraron cámaras traseras ni frontales, etiquetamos la primera cámara disponible como "Parte Trasera"
+    if (rearCameraDevice) {
+        // Si se encontró la cámara trasera, la etiquetamos como "Parte Trasera"
+        const rearSourceOption = document.createElement('option');
+        rearSourceOption.text = 'Parte Trasera';
+        rearSourceOption.value = rearCameraDevice.deviceId;
+        sourceSelect.appendChild(rearSourceOption);
+    }
+
+    if (!frontCameraDevice && !rearCameraDevice) {
+        // Si no se encontraron cámaras frontales ni traseras, etiquetamos la primera cámara disponible como "Parte Trasera"
         const defaultSourceOption = document.createElement('option');
         defaultSourceOption.text = 'Parte Trasera';
         defaultSourceOption.value = cameraDevices[0].deviceId;
@@ -140,7 +140,6 @@ if (isMobileDevice) {
     sourceSelect.appendChild(defaultOption);
     initializeCamera();
 }
-
 
             function onScanResult(result, err) {
                 if (result) {
