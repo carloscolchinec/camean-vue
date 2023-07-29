@@ -22,7 +22,6 @@ window.addEventListener("load", function () {
 
   function resetCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    detectedBarcode.style.display = "none";
     barcodeBox.style.display = "none";
   }
 
