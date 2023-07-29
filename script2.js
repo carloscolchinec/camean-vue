@@ -55,7 +55,7 @@ window.addEventListener('load', function () {
     codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
             const sourceSelect = document.getElementById('sourceSelect');
-            selectedDeviceId = videoInputDevices[0].deviceId;
+selectedDeviceId = videoInputDevices[1]?.deviceId || videoInputDevices[0]?.deviceId;
             if (videoInputDevices.length >= 1) {
 
                 
