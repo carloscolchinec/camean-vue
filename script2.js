@@ -17,17 +17,14 @@ window.addEventListener('load', function () {
     const codeReader = new ZXing.BrowserMultiFormatReader();
     const canvas = document.getElementById('scanner-overlay');
     const ctx = canvas.getContext('2d');
-    const detectedBarcode = document.getElementById('detectedBarcode');
     const video = document.getElementById('video');
     const barcodeBox = document.querySelector('.barcode-box');
     const badgeContainer = document.getElementById('badgeContainer');
     const scanSound = document.getElementById('scanSound');
-    const maxVerificationCount = 3;
-    const barcodeVerificationCount = {};
+
 
 
     function adjustBarcodeBox(x, y, width, height) {
-        // Mostrar el rectángulo del tamaño y posición del código de barras detectado
         barcodeBox.style.top = `${y}px`;
         barcodeBox.style.left = `${x}px`;
         barcodeBox.style.width = `${width}px`;
@@ -37,7 +34,7 @@ window.addEventListener('load', function () {
 
     function resetCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        detectedBarcode.style.display = 'none';
+
         barcodeBox.style.display = 'none';
     }
 
@@ -69,19 +66,15 @@ window.addEventListener('load', function () {
         .then((videoInputDevices) => {
             const sourceSelect = document.getElementById('sourceSelect');
             let selectedDeviceId;
-    
-            // Función para determinar si el dispositivo es un celular o una computadora
-            function isMobileDevice() {
+                function isMobileDevice() {
                 return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             }
     
             if (videoInputDevices.length >= 1) {
                 if (isMobileDevice()) {
-                    // Para dispositivos móviles, seleccionar la cámara trasera por defecto
                     const rearCameraDevices = videoInputDevices.filter(device => device.label.includes('back') || device.label.includes('trasera'));
                     selectedDeviceId = rearCameraDevices.length > 0 ? rearCameraDevices[0].deviceId : videoInputDevices[0].deviceId;
                 } else {
-                    // Para computadoras, seleccionar la cámara por defecto
                     selectedDeviceId = videoInputDevices[0].deviceId;
                 }
     
@@ -92,8 +85,8 @@ window.addEventListener('load', function () {
                     sourceSelect.appendChild(sourceOption);
                 });
     
-                sourceSelect.value = selectedDeviceId; // Establecer la opción seleccionada por defecto
-    
+                sourceSelect.value = selectedDeviceId; 
+                
                 sourceSelect.onchange = () => {
                     codeReader.reset();
                     selectedDeviceId = sourceSelect.value;
@@ -108,33 +101,30 @@ window.addEventListener('load', function () {
     
                 const sourceSelectPanel = document.getElementById('sourceSelectPanel');
                 sourceSelectPanel.style.display = 'block';
+                
+                setTimeout(() => {
+
+                    const video = document.getElementById('video');
+    video.style.border = '1px solid #fe8e14';
+
+                    const animatedLine = document.querySelector('.animated-line');
+                animatedLine.style.backgroundColor = '#fe8e14';
+                }, 700);
             }
+
+            
 
             function onScanResult(result, err) {
                 if (result) {
+                    
                     resetCanvas();
 
                     preloadScanSound();
 
                     badgeContainer.textContent = `Codigo Escaneado: ${result.text}`;
 
-                    // Mostrar el rectángulo alrededor del código de barras detectado
                     if (result.barcodeResult) {
-                        const { x, y, width, height } = getBoundingBox(result.barcodeResult.resultPoints);
-                        ctx.strokeStyle = '#10B981';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(x, y, width, height);
-
-                        // Mostrar el código detectado en la esquina superior derecha del rectángulo
-                        detectedBarcode.textContent = `[${result.text}]`;
-                        detectedBarcode.style.top = `${y}px`;
-                        detectedBarcode.style.left = `${x + width}px`;
-                        detectedBarcode.style.display = 'block';
-
-                        // Mostrar el rectángulo que encierra el código de barras
-                        adjustBarcodeBox(x, y, width, height);
-
-                        // Guardar el número escaneado en el array
+                       
                         if (!scannedNumbers[result.text]) {
                             scannedNumbers[result.text] = [];
                         }
@@ -150,7 +140,7 @@ window.addEventListener('load', function () {
 
             video.onloadedmetadata = adjustLinePosition;
             window.addEventListener('resize', adjustLinePosition);
-
+            
             codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', onScanResult, err => {
                 if (!(err instanceof ZXing.NotFoundException)) {
                     console.error(err);
