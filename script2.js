@@ -55,19 +55,13 @@
         .then((videoInputDevices) => {
             const sourceSelect = document.getElementById('sourceSelect');
 
-            if (videoInputDevices.length >= 1) {
-                // Seleccionar la cámara trasera si está disponible en dispositivos móviles
-                const rearCameraDevice = videoInputDevices.find(device => {
-                    return device.label.toLowerCase().includes('rear') || device.label.toLowerCase().includes('trasera');
-                });
+            // Buscar la cámara trasera en la lista de dispositivos de video
+            const rearCameraDevice = videoInputDevices.find(device => {
+                return device.label.toLowerCase().includes('rear') || device.label.toLowerCase().includes('trasera');
+            });
 
-                if (rearCameraDevice) {
-                    selectedDeviceId = rearCameraDevice.deviceId;
-                } else {
-                    // Si no se encontró la cámara trasera, seleccionar la primera cámara disponible (cámara frontal)
-                    selectedDeviceId = videoInputDevices[0].deviceId;
-                }
-            }
+            // Seleccionar la cámara trasera si está disponible, de lo contrario, seleccionar la primera cámara disponible
+            selectedDeviceId = rearCameraDevice ? rearCameraDevice.deviceId : videoInputDevices[0].deviceId;
 
             videoInputDevices.forEach((element) => {
                 const sourceOption = document.createElement('option');
