@@ -26,6 +26,14 @@
         align-items: center;
         height: 100vh;
     }
+
+    .centered-frame {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
     
     .card {
         width: 100%;
@@ -138,8 +146,8 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 90%; /* Ajusta el tamaño del cuadro según tu preferencia */
-        top: -165px;
+        width: 95%; /* Ajusta el tamaño del cuadro según tu preferencia */
+        top: -170px;
         height: 120px; /* Ajusta el tamaño del cuadro según tu preferencia */
         margin: 0 auto;
         background-color: rgba(255, 255, 255, 0.3); /* Puedes ajustar el color y opacidad del cuadro aquí */
@@ -188,15 +196,13 @@
             <h1 class="title">COLNETCAM | CODEBAR</h1>
             <div class="video-container">
                 <video id="video" class="video"></video>
-
-                <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
-                <div class="animated-line"></div>
                 <div class="video-frame">
                     <div class="barcode-box"></div>
-                    <!-- Agregamos el div para el rectángulo -->
                 </div>
+                <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
+                <div class="animated-line"></div>
             </div>
-
+            
             <div id="sourceSelectPanel" class="mt-4">
                 <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
                 <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
@@ -215,6 +221,8 @@
     <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.7/dist/sweetalert2.all.min.js"></script> 
     <script>
+
+
         window.addEventListener("load", function () {
             let selectedDeviceId;
             const codeReader = new ZXing.BrowserMultiFormatReader();
