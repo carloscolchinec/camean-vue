@@ -139,7 +139,7 @@
         justify-content: center;
         align-items: center;
         width: 90%; /* Ajusta el tamaño del cuadro según tu preferencia */
-        top: 50px;
+        top: -165px;
         height: 120px; /* Ajusta el tamaño del cuadro según tu preferencia */
         margin: 0 auto;
         background-color: rgba(255, 255, 255, 0.3); /* Puedes ajustar el color y opacidad del cuadro aquí */
@@ -191,17 +191,15 @@
 
                 <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
                 <div class="animated-line"></div>
+                <div class="video-frame">
+                    <div class="barcode-box"></div>
+                    <!-- Agregamos el div para el rectángulo -->
+                </div>
             </div>
-
-                <div class="barcode-box"></div>
-                <!-- Agregamos el div para el rectángulo -->
-            
-  
 
             <div id="sourceSelectPanel" class="mt-4">
                 <label for="sourceSelect" class="font-semibold text-gray-800">Seleccionar Cámara:</label>
-                <select id="sourceSelect"
-                    class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
+                <select id="sourceSelect" class="block mt-2 w-full border rounded px-4 py-2 bg-white focus:outline-none">
                 </select>
             </div>
 
@@ -210,7 +208,6 @@
         </div>
 
     </main>
-
     <!-- Agregamos la etiqueta de audio para reproducir el sonido -->
     <audio id="scanSound" src="./barcode.mp3"></audio>
 
