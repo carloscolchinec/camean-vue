@@ -147,7 +147,7 @@
         justify-content: center;
         align-items: center;
         width: 95%; /* Ajusta el tamaño del cuadro según tu preferencia */
-        top: -250px;
+      
         height: 120px; /* Ajusta el tamaño del cuadro según tu preferencia */
         margin: 0 auto;
         background-color: rgba(255, 255, 255, 0.3); /* Puedes ajustar el color y opacidad del cuadro aquí */
@@ -168,7 +168,7 @@
         height: 2px;
         /* background-color: #fe8e14; */
         z-index: 1;
-        animation: lineAnimation 5s infinite;
+        animation: lineAnimation 7s infinite;
     }
     
     @keyframes lineAnimation {
@@ -221,50 +221,19 @@
     <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.7/dist/sweetalert2.all.min.js"></script> 
     <script>
- document.addEventListener('DOMContentLoaded', function () {
-        const video = document.getElementById('video');
-        const videoFrame = document.querySelector('.video-frame');
 
-        function centerVideoFrame() {
-            const videoWidth = video.videoWidth;
-            const videoHeight = video.videoHeight;
-            const videoRatio = videoWidth / videoHeight;
-
-            // Calcular el tamaño del cuadro según el tamaño del video
-            let frameWidth = video.offsetWidth * 0.95; // Ajusta el tamaño según tus preferencias
-            let frameHeight = frameWidth / videoRatio;
-
-            // Asegurarse de que el cuadro no exceda el tamaño del video
-            if (frameHeight > video.offsetHeight * 0.7) {
-                frameHeight = video.offsetHeight * 0.7;
-                frameWidth = frameHeight * videoRatio;
+        document.addEventListener('DOMContentLoaded', function () {
+            const videoFrame = document.querySelector('.video-frame');
+    
+            function setVideoFramePosition() {
+                const isMobile = window.innerWidth <= 768;
+                videoFrame.style.top = isMobile ? '-250px' : '-170px';
             }
-
-            // Calcular la posición vertical del cuadro
-            let frameTop;
-            if (window.innerWidth <= 768) {
-                // Dispositivo móvil (celular)
-                frameTop = -250;
-            } else {
-                // PC
-                frameTop = -170;
-            }
-
-            // Calcular la posición horizontal del cuadro
-            const frameLeft = (video.offsetWidth - frameWidth) / 2;
-
-            // Aplicar el tamaño y posición del cuadro
-            videoFrame.style.width = frameWidth + 'px';
-            videoFrame.style.height = frameHeight + 'px';
-            videoFrame.style.left = frameLeft + 'px';
-            videoFrame.style.top = frameTop + 'px';
-        }
-
-        // Llamamos a la función por primera vez y después de que se cargue el video
-        centerVideoFrame();
-        video.addEventListener('loadedmetadata', centerVideoFrame);
-        window.addEventListener('resize', centerVideoFrame);
-    });
+    
+            // Llamamos a la función por primera vez y después de que se cambie el tamaño de la ventana
+            setVideoFramePosition();
+            window.addEventListener('resize', setVideoFramePosition);
+        });
 
         window.addEventListener("load", function () {
             let selectedDeviceId;
