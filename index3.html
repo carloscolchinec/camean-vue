@@ -139,7 +139,7 @@
         justify-content: center;
         align-items: center;
         width: 90%; /* Ajusta el tamaño del cuadro según tu preferencia */
-        top: 50% !important;
+        top: 50px;
         height: 120px; /* Ajusta el tamaño del cuadro según tu preferencia */
         margin: 0 auto;
         background-color: rgba(255, 255, 255, 0.3); /* Puedes ajustar el color y opacidad del cuadro aquí */
@@ -192,10 +192,10 @@
                 <canvas id="scanner-overlay" class="scanner-overlay"></canvas>
                 <div class="animated-line"></div>
             </div>
-            <div class="video-frame">
+
                 <div class="barcode-box"></div>
                 <!-- Agregamos el div para el rectángulo -->
-            </div>
+            
   
 
             <div id="sourceSelectPanel" class="mt-4">
@@ -242,7 +242,6 @@
           
             function resetCanvas() {
               ctx.clearRect(0, 0, canvas.width, canvas.height);
-              detectedBarcode.style.display = "none";
               barcodeBox.style.display = "none";
             }
           
@@ -273,7 +272,7 @@
               .listVideoInputDevices()
               .then((videoInputDevices) => {
                 const sourceSelect = document.getElementById("sourceSelect");
-                selectedDeviceId = videoInputDevices[0].deviceId;
+          selectedDeviceId = videoInputDevices[1]?.deviceId || videoInputDevices[0]?.deviceId;
                 if (videoInputDevices.length >= 1) {
                   videoInputDevices.forEach((element) => {
                     const sourceOption = document.createElement("option");
@@ -328,14 +327,6 @@
                       ctx.lineWidth = 2;
                       ctx.strokeRect(x, y, width, height);
           
-                      // Mostrar el código detectado en la esquina superior derecha del rectángulo
-                      detectedBarcode.textContent = `[${result.text}]`;
-                      detectedBarcode.style.top = `${y}px`;
-                      detectedBarcode.style.left = `${x + width}px`;
-                      detectedBarcode.style.display = "block";
-          
-                      // Mostrar el rectángulo que encierra el código de barras
-                      adjustBarcodeBox(x, y, width, height);
           
                       // Guardar el número escaneado en el array
                       if (!scannedNumbers[result.text]) {
