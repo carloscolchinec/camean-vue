@@ -221,7 +221,50 @@
     <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.7/dist/sweetalert2.all.min.js"></script> 
     <script>
+ document.addEventListener('DOMContentLoaded', function () {
+        const video = document.getElementById('video');
+        const videoFrame = document.querySelector('.video-frame');
 
+        function centerVideoFrame() {
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            const videoRatio = videoWidth / videoHeight;
+
+            // Calcular el tamaño del cuadro según el tamaño del video
+            let frameWidth = video.offsetWidth * 0.95; // Ajusta el tamaño según tus preferencias
+            let frameHeight = frameWidth / videoRatio;
+
+            // Asegurarse de que el cuadro no exceda el tamaño del video
+            if (frameHeight > video.offsetHeight * 0.7) {
+                frameHeight = video.offsetHeight * 0.7;
+                frameWidth = frameHeight * videoRatio;
+            }
+
+            // Calcular la posición vertical del cuadro
+            let frameTop;
+            if (window.innerWidth <= 768) {
+                // Dispositivo móvil (celular)
+                frameTop = -250;
+            } else {
+                // PC
+                frameTop = -170;
+            }
+
+            // Calcular la posición horizontal del cuadro
+            const frameLeft = (video.offsetWidth - frameWidth) / 2;
+
+            // Aplicar el tamaño y posición del cuadro
+            videoFrame.style.width = frameWidth + 'px';
+            videoFrame.style.height = frameHeight + 'px';
+            videoFrame.style.left = frameLeft + 'px';
+            videoFrame.style.top = frameTop + 'px';
+        }
+
+        // Llamamos a la función por primera vez y después de que se cargue el video
+        centerVideoFrame();
+        video.addEventListener('loadedmetadata', centerVideoFrame);
+        window.addEventListener('resize', centerVideoFrame);
+    });
 
         window.addEventListener("load", function () {
             let selectedDeviceId;
