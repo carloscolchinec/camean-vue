@@ -146,47 +146,39 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 95%; /* Ajusta el tamaño del cuadro según tu preferencia */
-      
-        height: 120px; /* Ajusta el tamaño del cuadro según tu preferencia */
+        width: 95%;
+        height: 120px;
         margin: 0 auto;
-        background-color: rgba(255, 255, 255, 0.3); /* Puedes ajustar el color y opacidad del cuadro aquí */
-        border: 2px solid #fe8e14; /* Agrega un borde al cuadro si lo deseas */
-        border-radius: 8px; /* Ajusta el radio de los bordes si lo deseas */
-        pointer-events: none; /* Evita que el cuadro interfiera con la interacción del video */
-        opacity: 1; /* Asegúrate de que el cuadro sea visible */
+        background-color: rgba(255, 255, 255, 0.3);
+        border: 2px solid #fe8e14;
+        border-radius: 8px;
+        pointer-events: none;
+        overflow: hidden; /* Ocultamos el contenido que se salga del cuadro */
     }
     
-    
-    /* Estilos para la línea animada */
     .animated-line {
         position: absolute;
-        top: 0;
-        /* La línea inicia en la parte superior del contenedor */
+        top: 0; /* Colocamos la línea en la parte superior del cuadro */
         left: 0;
-        width: 99%;
+        margin-left: 9px;
+        width: 94%;
         height: 2px;
-        /* background-color: #fe8e14; */
+        background-color: #fe8e14;
         z-index: 1;
-        animation: lineAnimation 7s infinite;
+        animation: lineAnimation 3s infinite;
     }
     
     @keyframes lineAnimation {
         0% {
-            transform: translateY(-85px);
-            /* La línea inicia en su posición original (parte superior del contenedor) */
+            transform: translateY(-60px); /* La línea inicia en la parte superior del cuadro */
         }
-    
-        50% {
-            transform: translateY(85px);
-            /* La línea se mueve hacia abajo hasta abarcar todo el contenedor */
-        }
+
     
         100% {
-            transform: translateY(-85px);
-            /* La línea vuelve a su posición original (parte superior del contenedor) */
+            transform: translateY(60px); /* La línea vuelve a su posición original (parte superior del cuadro) */
         }
     }
+    
 </style>
 
 
@@ -221,13 +213,16 @@
     <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.7/dist/sweetalert2.all.min.js"></script> 
     <script>
-
         document.addEventListener('DOMContentLoaded', function () {
             const videoFrame = document.querySelector('.video-frame');
+            const animatedLine = document.querySelector('.animated-line');
     
             function setVideoFramePosition() {
                 const isMobile = window.innerWidth <= 768;
                 videoFrame.style.top = isMobile ? '-250px' : '-170px';
+    
+                // Actualizamos la posición de la línea dentro del cuadro
+                animatedLine.style.top = isMobile ? '0' : '50px'; // Ajusta el valor '50px' según tu preferencia
             }
     
             // Llamamos a la función por primera vez y después de que se cambie el tamaño de la ventana
