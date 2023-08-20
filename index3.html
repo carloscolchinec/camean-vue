@@ -358,11 +358,7 @@
             console.log(videoInputDevices)
             const sourceSelect = document.getElementById("sourceSelect");
             const rearCamera = videoInputDevices.find(device => device.label.toLowerCase().includes('rear'));
-            if(rearCamera){
-                alert("OK")
-            } else {
-                alert("FAIL")
-            }
+     
             selectedDeviceId =
               videoInputDevices[1]?.deviceId || videoInputDevices[0]?.deviceId;
 
