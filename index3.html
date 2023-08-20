@@ -401,17 +401,7 @@
                 animatedLine.style.backgroundColor = "#fe8e14";
               }, 200);
 
-              setTimeout(() => {
-                const loadingContainer =
-                  document.querySelector(".loading-container");
-                const mainContainer =
-                  document.querySelector(".container-camare");
-
-                loadingContainer.style.display = "none";
-                mainContainer.style.display = "block";
-
-                body.classList.remove("no-scroll");
-              }, 5000);
+           
             }
 
             function onScanResult(result, err) {
@@ -463,6 +453,18 @@
           .catch((err) => {
             console.error(err);
           });
+
+          setTimeout(() => {
+            const loadingContainer =
+              document.querySelector(".loading-container");
+            const mainContainer =
+              document.querySelector(".container-camare");
+
+            loadingContainer.style.display = "none";
+            mainContainer.style.display = "block";
+
+            body.classList.remove("no-scroll");
+          }, 5000);
       });
 
       // Función para obtener el rectángulo del código de barras a partir de los puntos de resultado
