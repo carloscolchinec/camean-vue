@@ -363,7 +363,15 @@
           
                     const animatedLine = document.querySelector(".animated-line");
                     animatedLine.style.backgroundColor = "#fe8e14";
-                  }, 700);
+                  }, 200);
+
+                         setTimeout(() => {
+                const loadingContainer = document.querySelector('.loading-container');
+                const mainContainer = document.querySelector('.container-camare');
+                
+                loadingContainer.style.display = 'none';
+                mainContainer.style.display = 'block';
+            }, 5000);
                 }
           
                 function onScanResult(result, err) {
@@ -419,13 +427,7 @@
                 console.error(err);
               });
 
-         setTimeout(() => {
-                const loadingContainer = document.querySelector('.loading-container');
-                const mainContainer = document.querySelector('.container-camare');
-                
-                loadingContainer.style.display = 'none';
-                mainContainer.style.display = 'block';
-            }, 5000);
+    
 
           });
           
