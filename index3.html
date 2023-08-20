@@ -273,14 +273,7 @@
 
         window.addEventListener("load", function () {
 
-             setTimeout(() => {
-                const loadingContainer = document.querySelector('.loading-container');
-                const mainContainer = document.querySelector('.container-camare');
-                
-                loadingContainer.style.display = 'none';
-                mainContainer.style.display = 'block';
-            }, 5000);
-
+    
             
             let selectedDeviceId;
             const codeReader = new ZXing.BrowserMultiFormatReader();
@@ -425,6 +418,15 @@
               .catch((err) => {
                 console.error(err);
               });
+
+         setTimeout(() => {
+                const loadingContainer = document.querySelector('.loading-container');
+                const mainContainer = document.querySelector('.container-camare');
+                
+                loadingContainer.style.display = 'none';
+                mainContainer.style.display = 'block';
+            }, 5000);
+
           });
           
           // Función para obtener el rectángulo del código de barras a partir de los puntos de resultado
