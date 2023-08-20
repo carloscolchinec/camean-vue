@@ -219,8 +219,9 @@
     </main>
     
     
-    <main class="container">
-        <div class="card">
+    <main class="container-camare">
+       <div class="container">
+            <div class="card">
             <h1 class="title">COLNETCAM | CODEBAR</h1>
             <div class="video-container">
                 <video id="video" class="video"></video>
@@ -241,6 +242,7 @@
 
         </div>
 
+       </div>
     </main>
     <!-- Agregamos la etiqueta de audio para reproducir el sonido -->
     <audio id="scanSound" src="./barcode.mp3"></audio>
@@ -270,7 +272,7 @@
 
              setTimeout(() => {
                 const loadingContainer = document.querySelector('.loading-container');
-                const mainContainer = document.querySelector('.container');
+                const mainContainer = document.querySelector('.container-camare');
                 
                 loadingContainer.style.display = 'none';
                 mainContainer.style.display = 'block';
