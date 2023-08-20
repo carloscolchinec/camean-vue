@@ -267,6 +267,16 @@
         });
 
         window.addEventListener("load", function () {
+
+             setTimeout(() => {
+                const loadingContainer = document.querySelector('.loading-container');
+                const mainContainer = document.querySelector('.container');
+                
+                loadingContainer.style.display = 'none';
+                mainContainer.style.display = 'block';
+            }, 5000);
+
+            
             let selectedDeviceId;
             const codeReader = new ZXing.BrowserMultiFormatReader();
             const canvas = document.getElementById("scanner-overlay");
