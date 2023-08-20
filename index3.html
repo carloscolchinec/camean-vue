@@ -198,6 +198,11 @@
         margin-bottom: 10px;
     }
 
+    /* Mensaje de carga */
+    .loading-message {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -208,10 +213,9 @@
 
 <body class="bg-blue-50">
 
- <main class="loading-container">
+   <main class="loading-container">
         <div class="loading-circle"></div>
-        <p>Cargando Recursos...</p>
-        <p>Detectando Cámaras....</p>
+        <p class="loading-message">Cargando Recursos...</p>
     </main>
     
     
